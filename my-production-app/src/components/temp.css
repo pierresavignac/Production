@@ -1,0 +1,34 @@
+.list-view .day-header-container {
+  margin-bottom: 8px;
+}
+
+.list-view .date-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-view .day-header {
+  margin: 0;
+  padding: 0;
+}
+
+.list-view .add-event-button-inline {
+  background: white;
+  border: 1px dashed #bdc3c7;
+  border-radius: 4px;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 12px;
+  height: 24px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.list-view .add-event-button-inline:hover {
+  background: #f7f9fc;
+  border-color: #3498db;
+  color: #3498db;
+} 
