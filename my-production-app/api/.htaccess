@@ -1,0 +1,26 @@
+# Configuration de base
+RewriteEngine On
+Options +FollowSymLinks
+
+# Autoriser l'accès aux fichiers PHP de l'API
+<Files "*.php">
+    Require all granted
+</Files>
+
+# Gérer les requêtes OPTIONS
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Routes de l'API
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^events/?$ events.php [L,QSA]
+RewriteRule ^employees/?$ employees.php [L,QSA]
+
+# Protection contre l'affichage du contenu des répertoires
+Options -Indexes
+
+# Désactiver l'affichage des erreurs en production
+php_flag display_errors off
+php_value error_reporting E_ALL
+php_value error_log "debug.log"

@@ -69,7 +69,7 @@ const CalendarContainer = styled.div`
   height: 100vh;
   width: 100%;
   margin: 0;
-  background: #f0f2f5;
+  background: transparent !important;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -83,7 +83,7 @@ const ScrollContainer = styled.div`
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
-  background: #f0f2f5;
+  background: transparent !important;
   scroll-behavior: smooth;
   padding: 20px;
   width: 100%;
@@ -94,7 +94,7 @@ const ScrollContainer = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
   }
   
   &::-webkit-scrollbar-thumb {
@@ -112,27 +112,15 @@ const WeekSection = styled.section`
   padding: 30px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   width: 100%;
-  background: white;
+  background: white !important;
+  
+  &[data-is-current="true"] {
+    background-color: #a5d6a7 !important; /* Vert plus pâle */
+    border-left: 4px solid #1b5e20 !important;
+  }
   
   &:last-child {
     margin-bottom: 0;
-  }
-
-  ${props => props.$isCurrent && `
-    background-color: #e8f6e9 !important;
-    border-left: 4px solid #27ae60;
-  `}
-
-  &[data-is-current="true"] {
-    background-color: #e8f6e9 !important;
-  }
-
-  &[data-is-current="true"] .day-block {
-    background-color: #f2faf3 !important;
-  }
-
-  &[data-is-current="true"] h2 {
-    color: #2c3e50;
   }
 `;
 
@@ -157,6 +145,16 @@ const DayBlock = styled.div`
   flex-direction: column;
   gap: 12px;
 
+  &[data-is-current="true"] {
+    background-color: #2e7d32 !important;
+    border-color: #1b5e20 !important;
+    
+    h3 {
+      color: white !important;
+      border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+
   &:hover {
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   }
@@ -173,10 +171,6 @@ const DayBlock = styled.div`
   h3 > span {
     display: flex;
     align-items: center;
-  }
-
-  &[data-is-current="true"] {
-    background-color: #93d7b1 !important;
   }
 `;
 
@@ -1415,7 +1409,6 @@ const BlockView = () => {
           <WeekSection 
             key={weekKey} 
             data-is-current={isCurrent}
-            $isCurrent={isCurrent}
           >
             <div className="week-header">
               <div className="week-title">
@@ -1512,7 +1505,10 @@ const BlockView = () => {
 
               {/* Afficher les jours du weekend seulement s'ils ont des événements */}
               {saturdayEvents.length > 0 && (
-                <DayBlock hasEvents={true}>
+                <DayBlock 
+                  hasEvents={true}
+                  data-is-current={isCurrentDay(saturday)}
+                >
                   <h3>
                     {format(saturday, 'EEEE dd', { locale: fr })}
                   </h3>
@@ -1572,7 +1568,10 @@ const BlockView = () => {
               )}
 
               {sundayEvents.length > 0 && (
-                <DayBlock hasEvents={true}>
+                <DayBlock 
+                  hasEvents={true}
+                  data-is-current={isCurrentDay(sunday)}
+                >
                   <h3>
                     {format(sunday, 'EEEE dd', { locale: fr })}
                   </h3>
@@ -1618,7 +1617,7 @@ const BlockView = () => {
                             ]
                               .filter(Boolean)
                               .join(', ') || 'Aucun technicien assigné'}
-                          </div>
+                            </div>
                         </div>
                       ) : (
                         <>
@@ -1656,17 +1655,32 @@ const ProductionCalendar = () => {
     loadEmployees();
   }, []);
 
-  // Effet pour scroller à la semaine courante après le chargement initial
+  // Supprimer tous les autres useEffect liés au scroll
   useEffect(() => {
-    const timer = setTimeout(() => handleGoToCurrentWeek(), 300);
-    return () => clearTimeout(timer);
-  }, []);
+    const scrollToCurrentWeek = () => {
+      const container = viewMode === 'calendar' ? scrollRef.current : document.querySelector('.list-view');
+      if (!container) return;
 
-  // Effet pour scroller à la semaine courante lors du changement de mode
-  useEffect(() => {
-    const timer = setTimeout(() => handleGoToCurrentWeek(), 300);
-    return () => clearTimeout(timer);
-  }, [viewMode]);
+      const weekElements = container.querySelectorAll('.week-section');
+      const weekArray = Array.from(weekElements);
+      const currentWeekIndex = weekArray.findIndex(el => el.getAttribute('data-is-current') === 'true');
+      
+      if (currentWeekIndex !== -1) {
+        const targetWeek = weekArray[currentWeekIndex];
+        const headerHeight = 60;
+        const padding = 20;
+        const elementTop = targetWeek.offsetTop;
+        
+        container.scrollTo({
+          top: Math.max(0, elementTop - headerHeight - padding),
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    // Attendre que le DOM soit prêt
+    requestAnimationFrame(scrollToCurrentWeek);
+  }, [currentDate, viewMode]);
 
   const loadEvents = async () => {
     try {
@@ -1677,8 +1691,12 @@ const ProductionCalendar = () => {
       const data = JSON.parse(text);
       console.log('Données du chargement parsées:', data);
 
+      if (!data.success || !Array.isArray(data.data)) {
+        throw new Error('Format de données invalide');
+      }
+
       // Grouper les événements par date
-      const groupedEvents = data.reduce((acc, event) => {
+      const groupedEvents = data.data.reduce((acc, event) => {
         console.log('Traitement événement:', event);
         
         if (!acc[event.date]) {
@@ -1781,7 +1799,7 @@ const ProductionCalendar = () => {
         employee_id: formData.type === 'installation' ? null : formData.employeeId
       };
 
-      console.log('Données envoyées à l\'API:', eventData);
+      console.log('Donn��es envoyées à l\'API:', eventData);
 
       const response = await fetch('https://app.vivreenliberte.org/api/events.php', {
         method: 'POST',
@@ -1832,17 +1850,44 @@ const ProductionCalendar = () => {
   const isCurrentWeek = (date) => {
     const today = new Date();
     const start = new Date(date);
-    start.setHours(0, 0, 0,0);
-    const end = new Date(date);
-    end.setDate(end.getDate() + 4);
-    end.setHours(23, 59, 59, 999);
     
-    return today >= start && today <= end;
+    // Réinitialiser les heures
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    
+    // Obtenir le lundi de la semaine courante
+    const todayDay = today.getDay() || 7;
+    const currentWeekMonday = new Date(today);
+    currentWeekMonday.setDate(today.getDate() - todayDay + 1);
+    currentWeekMonday.setHours(0, 0, 0, 0);
+    
+    // Obtenir le lundi de la semaine testée
+    const testDay = start.getDay() || 7;
+    const testWeekMonday = new Date(start);
+    testWeekMonday.setDate(start.getDate() - testDay + 1);
+    testWeekMonday.setHours(0, 0, 0, 0);
+    
+    // Comparer les lundis en format YYYY-MM-DD
+    const currentMondayStr = currentWeekMonday.toISOString().split('T')[0];
+    const testMondayStr = testWeekMonday.toISOString().split('T')[0];
+    
+    console.log('Current Monday:', currentMondayStr);
+    console.log('Test Monday:', testMondayStr);
+    
+    return currentMondayStr === testMondayStr;
   };
 
   // Fonction pour vérifier si c'est le jour courant
   const isCurrentDay = (date) => {
     const today = new Date();
+    // Ajoutons des logs pour déboguer
+    console.log('Comparing dates:', {
+      date: date.toISOString(),
+      today: today.toISOString(),
+      isEqual: date.getDate() === today.getDate() &&
+              date.getMonth() === today.getMonth() &&
+              date.getFullYear() === today.getFullYear()
+    });
     return (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
@@ -1851,15 +1896,26 @@ const ProductionCalendar = () => {
   };
 
   // Calcul des semaines à afficher
-  const weeks = [];
-  const startDate = new Date(currentDate);
-  startDate.setDate(startDate.getDate() - 14); // 2 semaines avant
+  const calculateWeeks = (baseDate) => {
+    const weeks = [];
+    const startDate = new Date(baseDate);
+    
+    // Trouver le lundi de la semaine courante
+    const currentDay = startDate.getDay() || 7;
+    startDate.setDate(startDate.getDate() - currentDay + 1);
+    
+    // Générer 3 semaines (semaine courante + 2 semaines après)
+    for (let i = 0; i < 3; i++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() + (i * 7));
+      weeks.push(getWeekDates(weekStart));
+    }
 
-  for (let i = 0; i < 5; i++) { // 5 semaines au total
-    const weekStart = new Date(startDate);
-    weekStart.setDate(weekStart.getDate() + (i * 7));
-    weeks.push(getWeekDates(weekStart));
-  }
+    return weeks;
+  };
+
+  // Utiliser cette fonction dans le composant
+  const weeks = calculateWeeks(currentDate);
 
   // Fonction pour aller à la semaine précédente
   const handlePrevWeek = () => {
@@ -1881,45 +1937,9 @@ const ProductionCalendar = () => {
 
   // Fonction pour aller à la semaine courante
   const handleGoToCurrentWeek = () => {
-    setCurrentDate(new Date());
-    
-    setTimeout(() => {
-      if (viewMode === 'list') {
-        const listContainer = document.querySelector('.list-view');
-        if (!listContainer) return;
-
-        const weekElements = listContainer.querySelectorAll('.week-section');
-        const today = new Date();
-        
-        for (let i = 0; i < weekElements.length; i++) {
-          const weekElement = weekElements[i];
-          if (weekElement.dataset.isCurrent === 'true') {
-            const headerHeight = 60;
-            const elementTop = weekElement.offsetTop;
-            
-            listContainer.scrollTo({
-              top: elementTop - headerHeight - 20,
-              behavior: 'smooth'
-            });
-            break;
-          }
-        }
-      } else {
-        const scrollContainer = scrollRef.current;
-        if (!scrollContainer) return;
-
-        const currentWeekElement = scrollContainer.querySelector('[data-is-current="true"]');
-        if (currentWeekElement) {
-          const headerHeight = 60;
-          const elementTop = currentWeekElement.offsetTop;
-          
-          scrollContainer.scrollTo({
-            top: elementTop - headerHeight - 20,
-            behavior: 'smooth'
-          });
-        }
-      }
-    }, 100);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setCurrentDate(today);
   };
 
   // Fonction pour formater la date en français
@@ -1951,15 +1971,7 @@ const ProductionCalendar = () => {
   // Composant pour la vue liste
   const ListView = () => {
     const listViewRef = useRef(null);
-    const weeks = [];
-    const startDate = new Date(currentDate);
-    startDate.setDate(startDate.getDate() - 14);
-
-    for (let i = 0; i < 5; i++) {
-      const weekStart = new Date(startDate);
-      weekStart.setDate(weekStart.getDate() + (i * 7));
-      weeks.push(getWeekDates(weekStart));
-    }
+    const weeks = calculateWeeks(currentDate); // Utiliser la même fonction que le mode bloc
 
     return (
       <div className="list-view" ref={listViewRef}>
@@ -1970,7 +1982,7 @@ const ProductionCalendar = () => {
           const weekKey = format(start, 'yyyy-MM-dd');
           const isCurrent = isCurrentWeek(start);
 
-          // Calculer les dates du weekend
+          // Vérifier s'il y a des événements pour le weekend
           const saturday = new Date(weekDays[weekDays.length - 1]);
           saturday.setDate(saturday.getDate() + 1);
           const sunday = new Date(saturday);
@@ -1979,12 +1991,10 @@ const ProductionCalendar = () => {
           // Vérifier s'il y a des événements pour le weekend
           const saturdayEvents = getEventsForDay(saturday, events);
           const sundayEvents = getEventsForDay(sunday, events);
-          
+
           return (
-            <div 
+            <WeekSection 
               key={weekKey} 
-              className={`week-section ${isCurrent ? 'current-week' : ''}`}
-              data-week={weekKey}
               data-is-current={isCurrent}
             >
               <div className="week-header">
@@ -2010,7 +2020,11 @@ const ProductionCalendar = () => {
                 const dayEvents = events[dateStr] || [];
                 
                 return (
-                  <div key={dateStr} className={`day-section ${isCurrentDay(currentDate) ? 'current-day' : ''}`}>
+                  <div 
+                    key={dateStr} 
+                    className="day-section"
+                    data-is-current={isCurrentDay(currentDate)}
+                  >
                     <div className="day-header-container">
                       <div className="date-group">
                         <h3 className="day-header">
@@ -2029,40 +2043,23 @@ const ProductionCalendar = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {dayEvents.map((event, eventIndex) => {
-                            const backgroundColor = event.type === 'installation' ? '#e3f2fd' : 
-                                                     event.type === 'maladie' ? '#ffebee' : '#e8f5e9';
-                            const borderColor = event.type === 'installation' ? '#bbdefb' : 
-                                           event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9';
-                            
-                            return (
-                              <tr 
-                                key={eventIndex}
-                                onClick={() => handleEventClick(event)}
-                                style={{ 
-                                  cursor: 'pointer',
-                                  backgroundColor: backgroundColor,
-                                  borderLeft: `4px solid ${borderColor}`
-                                }}
-                                className="event-row"
-                              >
-                                <td>
-                                  {event.type === 'conge' ? 'Congé' : 
-                                   event.type === 'maladie' ? 'Maladie' : 
-                                   'Installation'}
-                                </td>
-                                <td>
-                                  {event.type === 'installation' ? (
-                                    <span>
-                                      {event.first_name} {event.last_name} - {event.installation_number}
-                                    </span>
-                                  ) : (
-                                    <span>{event.employee_name}</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
+                          {dayEvents.map((event, eventIndex) => (
+                            <tr 
+                              key={eventIndex}
+                              onClick={() => handleEventClick(event)}
+                              className="event-row"
+                              data-type={event.type} // Ajouter cet attribut
+                            >
+                              <td>{event.type === 'conge' ? 'Congé' : event.type === 'maladie' ? 'Maladie' : 'Installation'}</td>
+                              <td>
+                                {event.type === 'installation' ? (
+                                  <span>{event.first_name} {event.last_name} - {event.installation_number}</span>
+                                ) : (
+                                  <span>{event.employee_name}</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     )}
@@ -2070,13 +2067,17 @@ const ProductionCalendar = () => {
                 );
               })}
 
-              {/* Afficher les jours du weekend seulement s'ils ont des événements */}
+              {/* Ajouter les weekends s'ils ont des événements */}
               {saturdayEvents.length > 0 && (
-                <div className="day-section">
+                <div 
+                  className="day-section"
+                  data-is-current={isCurrentDay(saturday)} // Vérifions que cet attribut est bien défini
+                >
                   <div className="day-header-container">
                     <div className="date-group">
                       <h3 className="day-header">
                         {format(saturday, 'EEEE dd MMMM', { locale: fr })}
+                        <AddInlineButton onClick={() => handleDateClick(saturday)}>+</AddInlineButton>
                       </h3>
                     </div>
                   </div>
@@ -2088,51 +2089,36 @@ const ProductionCalendar = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {saturdayEvents.map((event, eventIndex) => {
-                        const backgroundColor = event.type === 'installation' ? '#e3f2fd' : 
-                                               event.type === 'maladie' ? '#ffebee' : '#e8f5e9';
-                        const borderColor = event.type === 'installation' ? '#bbdefb' : 
-                                       event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9';
-                        
-                        return (
-                          <tr 
-                            key={eventIndex}
-                            onClick={() => handleEventClick(event)}
-                            style={{ 
-                              cursor: 'pointer',
-                              backgroundColor: backgroundColor,
-                              borderLeft: `4px solid ${borderColor}`
-                            }}
-                            className="event-row"
-                          >
-                            <td>
-                              {event.type === 'conge' ? 'Congé' : 
-                               event.type === 'maladie' ? 'Maladie' : 
-                               'Installation'}
-                            </td>
-                            <td>
-                              {event.type === 'installation' ? (
-                                <span>
-                                  {event.first_name} {event.last_name} - {event.installation_number}
-                                </span>
-                              ) : (
-                                <span>{event.employee_name}</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {saturdayEvents.map((event, eventIndex) => (
+                        <tr 
+                          key={eventIndex}
+                          onClick={() => handleEventClick(event)}
+                          className="event-row"
+                          data-type={event.type} // Ajouter cet attribut
+                        >
+                          <td>{event.type === 'conge' ? 'Congé' : event.type === 'maladie' ? 'Maladie' : 'Installation'}</td>
+                          <td>
+                            {event.type === 'installation' ? (
+                              <span>{event.first_name} {event.last_name} - {event.installation_number}</span>
+                            ) : (
+                              <span>{event.employee_name}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               )}
 
+              {/* Même chose pour le dimanche */}
               {sundayEvents.length > 0 && (
                 <div className="day-section">
                   <div className="day-header-container">
                     <div className="date-group">
                       <h3 className="day-header">
                         {format(sunday, 'EEEE dd MMMM', { locale: fr })}
+                        <AddInlineButton onClick={() => handleDateClick(sunday)}>+</AddInlineButton>
                       </h3>
                     </div>
                   </div>
@@ -2144,45 +2130,28 @@ const ProductionCalendar = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {sundayEvents.map((event, eventIndex) => {
-                        const backgroundColor = event.type === 'installation' ? '#e3f2fd' : 
-                                               event.type === 'maladie' ? '#ffebee' : '#e8f5e9';
-                        const borderColor = event.type === 'installation' ? '#bbdefb' : 
-                                       event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9';
-                        
-                        return (
-                          <tr 
-                            key={eventIndex}
-                            onClick={() => handleEventClick(event)}
-                            style={{ 
-                              cursor: 'pointer',
-                              backgroundColor: backgroundColor,
-                              borderLeft: `4px solid ${borderColor}`
-                            }}
-                            className="event-row"
-                          >
-                            <td>
-                              {event.type === 'conge' ? 'Congé' : 
-                               event.type === 'maladie' ? 'Maladie' : 
-                               'Installation'}
-                            </td>
-                            <td>
-                              {event.type === 'installation' ? (
-                                <span>
-                                  {event.first_name} {event.last_name} - {event.installation_number}
-                                </span>
-                              ) : (
-                                <span>{event.employee_name}</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {sundayEvents.map((event, eventIndex) => (
+                        <tr 
+                          key={eventIndex}
+                          onClick={() => handleEventClick(event)}
+                          className="event-row"
+                          data-type={event.type} // Ajouter cet attribut
+                        >
+                          <td>{event.type === 'conge' ? 'Congé' : event.type === 'maladie' ? 'Maladie' : 'Installation'}</td>
+                          <td>
+                            {event.type === 'installation' ? (
+                              <span>{event.first_name} {event.last_name} - {event.installation_number}</span>
+                            ) : (
+                              <span>{event.employee_name}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </div>
+            </WeekSection>
           );
         })}
       </div>
@@ -2303,7 +2272,6 @@ const ProductionCalendar = () => {
                 <WeekSection 
                   key={weekDays[0].getTime()}
                   data-is-current={isCurrent}
-                  $isCurrent={isCurrent}
                 >
                   <div className="week-header">
                     <h2>
@@ -2397,7 +2365,10 @@ const ProductionCalendar = () => {
 
                     {/* Afficher les jours du weekend seulement s'ils ont des événements */}
                     {saturdayEvents.length > 0 && (
-                      <DayBlock hasEvents={true}>
+                      <DayBlock 
+                        hasEvents={true}
+                        data-is-current={isCurrentDay(saturday)}
+                      >
                         <h3>
                           {format(saturday, 'EEEE dd', { locale: fr })}
                         </h3>
@@ -2457,7 +2428,10 @@ const ProductionCalendar = () => {
                     )}
 
                     {sundayEvents.length > 0 && (
-                      <DayBlock hasEvents={true}>
+                      <DayBlock 
+                        hasEvents={true}
+                        data-is-current={isCurrentDay(sunday)}
+                      >
                         <h3>
                           {format(sunday, 'EEEE dd', { locale: fr })}
                         </h3>

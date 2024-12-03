@@ -25,12 +25,15 @@
 }
 
 /* Styles pour la vue bloc */
-.week-section {
+.week-section,
+.list-view .week-section {
+  position: relative;
   margin: 0 0 20px 0;
-  background: white;
   padding: 30px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   width: 100%;
+  background: transparent !important;
+  border-left: 4px solid transparent;
 }
 
 .week-container {
@@ -164,16 +167,38 @@
   border-left: 4px solid transparent;
 }
 
-.list-view .week-section.current-week {
-  background-color: #e8f6e9 !important;
-  border-left: 4px solid #27ae60;
-}
-
 .list-view .day-section {
-  background: #f8f9fa;
+  background: white !important;
   border-radius: 4px;
   padding: 6px;
   margin-bottom: 6px;
+}
+
+.list-view .day-section[data-is-current="true"] {
+  background-color: #2e7d32 !important;
+  border-color: #1b5e20 !important;
+  padding: 10px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+}
+
+.list-view .day-section[data-is-current="true"] h3,
+.list-view .day-section[data-is-current="true"] .day-header {
+  color: white !important;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.list-view .day-section[data-is-current="true"] table,
+.list-view .day-section[data-is-current="true"] tr,
+.list-view .day-section[data-is-current="true"] td,
+.list-view .day-section[data-is-current="true"] th {
+  background: white !important;
+  color: inherit !important;
+  border-color: #eee !important;
+}
+
+.list-view .day-section[data-is-current="true"] .event-row:hover {
+  background: #f5f5f5 !important;
 }
 
 /* Styles pour l'en-tête et le bouton inline */
@@ -219,7 +244,7 @@
 .list-view table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: transparent !important;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 4px;
@@ -233,13 +258,13 @@
 }
 
 .list-view th {
-  background: #f8f9fa;
+  background: transparent !important;
   font-weight: 600;
   color: #2c3e50;
 }
 
 .list-view tr:hover {
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Styles pour les événements */
@@ -564,4 +589,165 @@
   background: #f7f9fc;
   border-color: #3498db;
   color: #3498db;
+}
+
+/* Style pour la semaine courante avec un vert encore plus foncé */
+.week-section[data-is-current="true"] {
+  background-color: #a5d6a7 !important;
+  border-left: 4px solid #1b5e20 !important;
+}
+
+/* Style pour les semaines non-courantes */
+.week-section:not([data-is-current="true"]) {
+  background: white !important;
+}
+
+/* Ajuster le scroll container */
+.scroll-container {
+  scroll-padding-top: 80px;  /* headerHeight + padding */
+  padding-top: 20px;
+}
+
+/* Changer le fond de la page en noir */
+body,
+#root,
+.calendar-container,
+.CalendarContainer,
+.ScrollContainer,
+.list-view {
+  background: #000000 !important;
+}
+
+/* Rendre tous les conteneurs transparents */
+.week-section,
+.list-view .week-section {
+  background: transparent !important;
+}
+
+/* Style pour la semaine courante */
+.week-section[data-is-current="true"] {
+  background-color: #a5d6a7 !important;
+  border-left: 4px solid #1b5e20 !important;
+}
+
+/* Style pour les semaines non-courantes */
+.week-section:not([data-is-current="true"]) {
+  background: white !important;
+}
+
+/* Style pour les weekends en mode liste */
+.list-view .day-section:last-child[data-is-current="true"],
+.list-view .day-section:nth-last-child(2)[data-is-current="true"] {
+  background-color: #2e7d32 !important;
+}
+
+/* Style pour le jour courant en mode bloc */
+.day-block[data-is-current="true"] {
+  background-color: #2e7d32 !important;
+  border-color: #1b5e20 !important;
+}
+
+/* Garder l'en-tête en blanc mais le contenu en noir */
+.day-block[data-is-current="true"] h3 {
+  color: white !important;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Remettre le texte des tâches en noir */
+.day-block[data-is-current="true"] .installation-details,
+.day-block[data-is-current="true"] strong,
+.day-block[data-is-current="true"] div {
+  color: #2c3e50 !important;
+}
+
+/* Style pour le jour courant en mode bloc et liste */
+.day-block[data-is-current="true"],
+.list-view .day-section[data-is-current="true"] {
+  background-color: #2e7d32 !important;
+  border-color: #1b5e20 !important;
+}
+
+/* Garder uniquement l'en-tête en blanc */
+.day-block[data-is-current="true"] h3,
+.list-view .day-section[data-is-current="true"] h3,
+.list-view .day-section[data-is-current="true"] .day-header {
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Réinitialiser tous les styles de texte et de fond pour les tâches */
+.day-block[data-is-current="true"] .installation-details,
+.day-block[data-is-current="true"] strong,
+.day-block[data-is-current="true"] div,
+.list-view .day-section[data-is-current="true"] table,
+.list-view .day-section[data-is-current="true"] th,
+.list-view .day-section[data-is-current="true"] td {
+  color: inherit !important;
+  background: inherit !important;
+  border-color: inherit !important;
+}
+
+/* Supprimer les styles spécifiques pour les weekends */
+.list-view .day-section:last-child[data-is-current="true"],
+.list-view .day-section:nth-last-child(2)[data-is-current="true"] {
+  background-color: #2e7d32 !important;
+}
+
+/* Style pour les tâches dans le jour courant */
+.day-block[data-is-current="true"] div[style] {
+  background: inherit !important;
+  color: #2c3e50 !important;
+}
+
+/* Style pour les détails des tâches */
+.day-block[data-is-current="true"] .installation-details,
+.day-block[data-is-current="true"] .installation-details div,
+.day-block[data-is-current="true"] strong {
+  color: #2c3e50 !important;
+}
+
+/* Style pour les tâches dans le jour courant (incluant les weekends) */
+.day-block[data-is-current="true"] div[style],
+.day-block[data-is-current="true"] div[style] .installation-details,
+.day-block[data-is-current="true"] div[style] strong,
+.day-block[data-is-current="true"] div[style] div {
+  color: #2c3e50 !important;
+}
+
+/* Style pour les tâches dans les weekends du jour courant */
+.week-container > .day-block[data-is-current="true"]:nth-last-child(-n+2) div[style],
+.week-container > .day-block[data-is-current="true"]:nth-last-child(-n+2) div[style] .installation-details,
+.week-container > .day-block[data-is-current="true"]:nth-last-child(-n+2) div[style] strong,
+.week-container > .day-block[data-is-current="true"]:nth-last-child(-n+2) div[style] div {
+  color: #2c3e50 !important;
+}
+
+/* Style de base pour les tâches en mode liste */
+.list-view tr.event-row {
+  background: transparent !important;
+}
+
+/* Styles spécifiques pour chaque type de tâche */
+.list-view tr.event-row[data-type="installation"] {
+  background-color: #e3f2fd !important;
+}
+
+.list-view tr.event-row[data-type="maladie"] {
+  background-color: #ffebee !important;
+}
+
+.list-view tr.event-row[data-type="conge"] {
+  background-color: #e8f5e9 !important;
+}
+
+/* Supprimer les styles qui forcent le blanc */
+.list-view .day-section table,
+.list-view .day-section tr,
+.list-view .day-section td,
+.list-view .day-section th {
+  background: transparent !important;
+}
+
+/* Effet de survol */
+.list-view tr.event-row:hover {
+  filter: brightness(0.95);
 }
