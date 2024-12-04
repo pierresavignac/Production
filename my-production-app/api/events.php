@@ -124,41 +124,47 @@ function handlePost($pdo) {
         }
         error_log("Données POST reçues : " . json_encode($data));
 
+        // Pour les vacances, vérifier le vacation_group_id
         if (isset($data['type']) && $data['type'] === 'vacances') {
-            $groupId = uniqid('vac_', true);
-            $data['vacation_group_id'] = $groupId;
+            if (!isset($data['vacation_group_id'])) {
+                // Si pas de vacation_group_id fourni, en générer un nouveau
+                $data['vacation_group_id'] = uniqid('vac_', true);
+            }
+            error_log("Création événement vacances avec vacation_group_id: " . $data['vacation_group_id']);
             
-            // Utiliser la date de l'événement si startDate/endDate ne sont pas fournis
-            $data['vacation_group_start_date'] = isset($data['startDate']) ? $data['startDate'] : $data['date'];
-            $data['vacation_group_end_date'] = isset($data['endDate']) ? $data['endDate'] : $data['date'];
+            // Utiliser les dates fournies
+            $data['vacation_group_start_date'] = $data['startDate'] ?? $data['date'];
+            $data['vacation_group_end_date'] = $data['endDate'] ?? $data['date'];
         }
 
+        // Préparer la requête SQL
         $sql = "INSERT INTO events (
-            type, date, first_name, last_name, installation_number, 
-            installation_time, city, equipment, amount, 
-            technician1_id, technician2_id, technician3_id, technician4_id, 
-            employee_id, region_id, vacation_group_id,
-            vacation_group_start_date, vacation_group_end_date
+            type, date, first_name, last_name, 
+            installation_number, installation_time, city, 
+            equipment, amount, technician1_id, technician2_id, 
+            technician3_id, technician4_id, employee_id, region_id,
+            vacation_group_id, vacation_group_start_date, vacation_group_end_date
         ) VALUES (
-            :type, :date, :first_name, :last_name, :installation_number,
-            :installation_time, :city, :equipment, :amount,
-            :technician1_id, :technician2_id, :technician3_id, :technician4_id,
-            :employee_id, :region_id, :vacation_group_id,
-            :vacation_group_start_date, :vacation_group_end_date
+            :type, :date, :first_name, :last_name, 
+            :installation_number, :installation_time, :city, 
+            :equipment, :amount, :technician1_id, :technician2_id, 
+            :technician3_id, :technician4_id, :employee_id, :region_id,
+            :vacation_group_id, :vacation_group_start_date, :vacation_group_end_date
         )";
 
         $stmt = $pdo->prepare($sql);
         
+        // Préparer les paramètres
         $params = [
             ':type' => $data['type'],
             ':date' => $data['date'],
-            ':first_name' => $data['first_name'] ?? null,
-            ':last_name' => $data['last_name'] ?? null,
-            ':installation_number' => $data['installation_number'] ?? null,
-            ':installation_time' => $data['installation_time'] ?? null,
-            ':city' => $data['city'] ?? null,
-            ':equipment' => $data['equipment'] ?? null,
-            ':amount' => $data['amount'] ?? null,
+            ':first_name' => $data['first_name'] ?? '',
+            ':last_name' => $data['last_name'] ?? '',
+            ':installation_number' => $data['installation_number'] ?? '',
+            ':installation_time' => $data['installation_time'] ?? '',
+            ':city' => $data['city'] ?? '',
+            ':equipment' => $data['equipment'] ?? '',
+            ':amount' => $data['amount'] ?? '',
             ':technician1_id' => $data['technician1_id'] ?? null,
             ':technician2_id' => $data['technician2_id'] ?? null,
             ':technician3_id' => $data['technician3_id'] ?? null,
@@ -170,17 +176,22 @@ function handlePost($pdo) {
             ':vacation_group_end_date' => $data['vacation_group_end_date'] ?? null
         ];
 
+        error_log("Paramètres de l'insertion : " . json_encode($params));
+
         if (!$stmt->execute($params)) {
             throw new Exception("Erreur lors de l'exécution de la requête");
         }
 
         $newId = $pdo->lastInsertId();
-        echo json_encode([
+        $response = [
             'success' => true,
             'message' => 'Événement ajouté avec succès',
             'id' => $newId,
             'vacation_group_id' => $data['vacation_group_id'] ?? null
-        ]);
+        ];
+        
+        error_log("Réponse envoyée : " . json_encode($response));
+        echo json_encode($response);
 
     } catch(Exception $e) {
         error_log("Erreur dans handlePost : " . $e->getMessage());
@@ -291,28 +302,59 @@ function handlePut($pdo) {
 // Fonction pour gérer les requêtes DELETE
 function handleDelete($pdo) {
     try {
-        $data = json_decode(file_get_contents('php://input'), true);
-        $id = isset($_GET['id']) ? $_GET['id'] : null;
+        // Lire les données JSON du corps de la requête
+        $rawData = file_get_contents('php://input');
+        $data = json_decode($rawData, true);
+        
+        // Récupérer l'ID de l'URL
+        $id = $_GET['id'] ?? null;
         
         if (!$id) {
-            throw new Exception('ID manquant');
+            throw new Exception("ID manquant");
         }
+        
+        error_log("DEBUG Suppression - ID: " . $id);
+        error_log("DEBUG Suppression - Données reçues: " . $rawData);
+        error_log("DEBUG Suppression - Mode de suppression: " . ($data['deleteMode'] ?? 'non spécifié'));
 
         if (isset($data['deleteMode']) && $data['deleteMode'] === 'group') {
-            // Suppression groupée
-            $stmt = $pdo->prepare("DELETE FROM events WHERE vacation_group_id = (SELECT vacation_group_id FROM events WHERE id = ?)");
+            error_log("DEBUG Vacances - Tentative de suppression en groupe");
+            
+            // Récupérer d'abord le vacation_group_id
+            $stmt = $pdo->prepare("SELECT vacation_group_id FROM events WHERE id = ?");
+            $stmt->execute([$id]);
+            $event = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            error_log("DEBUG Vacances - Event trouvé: " . json_encode($event));
+            
+            if ($event && $event['vacation_group_id']) {
+                error_log("DEBUG Vacances - Tentative de suppression du groupe: " . $event['vacation_group_id']);
+                
+                // Compter combien d'événements sont dans le groupe
+                $countStmt = $pdo->prepare("SELECT COUNT(*) FROM events WHERE vacation_group_id = ?");
+                $countStmt->execute([$event['vacation_group_id']]);
+                $count = $countStmt->fetchColumn();
+                error_log("DEBUG Vacances - Nombre d'événements dans le groupe: " . $count);
+                
+                // Supprimer tous les événements du même groupe
+                $stmt = $pdo->prepare("DELETE FROM events WHERE vacation_group_id = ?");
+                $result = $stmt->execute([$event['vacation_group_id']]);
+                error_log("DEBUG Vacances - Résultat de la suppression: " . ($result ? 'succès' : 'échec'));
+            } else {
+                error_log("DEBUG Vacances - Pas de vacation_group_id trouvé pour l'événement " . $id);
+                // Supprimer juste l'événement individuel si pas de groupe
+                $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
+                $stmt->execute([$id]);
+            }
         } else {
             // Suppression individuelle
             $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
-        }
-
-        if (!$stmt->execute([$id])) {
-            throw new Exception('Erreur lors de la suppression');
+            $stmt->execute([$id]);
         }
 
         echo json_encode([
             'success' => true,
-            'message' => 'Événement(s) supprimé(s) avec succès'
+            'message' => 'Événement supprimé avec succès'
         ]);
 
     } catch(Exception $e) {

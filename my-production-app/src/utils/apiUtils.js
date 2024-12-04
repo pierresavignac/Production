@@ -140,25 +140,23 @@ export const updateEvent = async (eventData) => {
   }
 };
 
-export const deleteEvent = async (eventId) => {
+export const deleteEvent = async (eventId, deleteMode = 'single') => {
   try {
     const response = await fetch(`${API_BASE_URL}/events.php?id=${eventId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
+      },
+      body: JSON.stringify({ deleteMode })
     });
-
+    
     if (!response.ok) {
-      const text = await response.text();
-      const errorData = JSON.parse(text);
-      throw new Error(errorData.message || `Erreur HTTP: ${response.status}`);
+      throw new Error('Erreur lors de la suppression');
     }
-
-    return true;
+    
+    return await response.json();
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'événement:', error);
+    console.error('Erreur:', error);
     throw error;
   }
 }; 

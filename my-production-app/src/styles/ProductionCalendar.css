@@ -387,3 +387,10 @@ th {
 .day-section[data-is-current="true"] {
   animation: currentDayBlink 2s ease-in-out infinite;
 }
+
+.calendar-block .block-content div:last-child {
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

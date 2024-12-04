@@ -73,6 +73,19 @@ const EventDetailsModal = ({ show, onHide, event, onEdit, onDelete }) => {
                             <span>{event.city}</span>
                         </div>
                         <div className="detail-item">
+                            <label>Techniciens :</label>
+                            <span>
+                                {[
+                                    event.technician1_name,
+                                    event.technician2_name,
+                                    event.technician3_name,
+                                    event.technician4_name
+                                ]
+                                    .filter(tech => tech)
+                                    .join(', ')}
+                            </span>
+                        </div>
+                        <div className="detail-item">
                             <label>Équipement :</label>
                             <span>{event.equipment}</span>
                         </div>
@@ -82,32 +95,8 @@ const EventDetailsModal = ({ show, onHide, event, onEdit, onDelete }) => {
                         </div>
                         <div className="detail-item">
                             <label>Région :</label>
-                            <span>{event.region_name}</span>
+                            <span>{event.region || event.region_name}</span>
                         </div>
-                        {event.technician1_name && (
-                            <div className="detail-item">
-                                <label>Technicien 1 :</label>
-                                <span>{event.technician1_name}</span>
-                            </div>
-                        )}
-                        {event.technician2_name && (
-                            <div className="detail-item">
-                                <label>Technicien 2 :</label>
-                                <span>{event.technician2_name}</span>
-                            </div>
-                        )}
-                        {event.technician3_name && (
-                            <div className="detail-item">
-                                <label>Technicien 3 :</label>
-                                <span>{event.technician3_name}</span>
-                            </div>
-                        )}
-                        {event.technician4_name && (
-                            <div className="detail-item">
-                                <label>Technicien 4 :</label>
-                                <span>{event.technician4_name}</span>
-                            </div>
-                        )}
                     </div>
                 );
             case 'formation':

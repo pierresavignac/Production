@@ -5,7 +5,6 @@ import { createEvent, fetchEvents, updateEvent, deleteEvent, fetchEmployees } fr
 import { getEventsForDay, sortEventsByTime } from '../utils/eventUtils';
 import { calculateWeeks, isCurrentDay, isCurrentWeek, formatDayHeader, formatDateForAPI } from '../utils/dateUtils';
 import AddEventModal from './modals/AddEventModal';
-import EditEventModal from './modals/EditEventModal';
 import EventDetailsModal from './modals/EventDetailsModal';
 import BlockView from './views/BlockView';
 import ListView from './views/ListView';
@@ -16,13 +15,13 @@ const ProductionCalendar = () => {
   const [events, setEvents] = useState({});
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showEventDetailsModal, setShowEventDetailsModal] = useState(false);
-  const [showEditEventModal, setShowEditEventModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [error, setError] = useState('');
   const [employees, setEmployees] = useState([]);
   const [viewMode, setViewMode] = useState('calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showEditEventModal, setShowEditEventModal] = useState(false);
   
   // Refs
   const scrollRef = useRef(null);
@@ -119,125 +118,119 @@ const ProductionCalendar = () => {
 
   const handleAddEventSubmit = async (formData) => {
     try {
-      console.log('Type d\'événement reçu:', formData.type); // Debug
+        console.log('Type d\'événement reçu:', formData.type);
 
-      if (formData.type === 'vacances') {
-        console.log('Création d\'événements vacances'); // Debug
-        const startDate = parseISO(formData.startDate);
-        const endDate = parseISO(formData.endDate);
-        let currentDate = startDate;
-        
-        while (currentDate <= endDate) {
-          if (!isWeekend(currentDate)) {
+        if (formData.mode === 'edit') {
+            // Cas de la modification
             const eventData = {
-              type: 'vacances',
-              date: format(currentDate, 'yyyy-MM-dd'),
-              employee_id: formData.employee_id,
-              first_name: '',
-              last_name: '',
-              installation_number: '',
-              installation_time: '',
-              city: '',
-              equipment: '',
-              amount: '',
-              technician1_id: null,
-              technician2_id: null,
-              technician3_id: null,
-              technician4_id: null,
-              region_id: null
+                id: selectedEvent.id,
+                type: formData.type,
+                date: formData.date,
+                installation_time: formData.installation_time,
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                installation_number: formData.installation_number,
+                city: formData.city,
+                equipment: formData.equipment,
+                amount: formData.amount,
+                region_id: formData.region,
+                technician1_id: formData.technician1,
+                technician2_id: formData.technician2,
+                technician3_id: formData.technician3,
+                technician4_id: formData.technician4
             };
-            console.log('Création événement vacances:', eventData); // Debug
-            const response = await createEvent(eventData);
-            console.log('Réponse création vacances:', response); // Debug
-          }
-          currentDate = addDays(currentDate, 1);
+
+            console.log('Mise à jour de l\'événement:', eventData);
+            await updateEvent(eventData);
+            setShowEditEventModal(false);
+            setSelectedEvent(null);
+        } else if (formData.type === 'vacances') {
+            // Code existant pour les vacances...
+            console.log('Création d\'événements vacances');
+            const startDate = parseISO(formData.startDate);
+            const endDate = parseISO(formData.endDate);
+            let currentDate = startDate;
+            
+            // Générer un seul vacation_group_id pour tout le groupe
+            const groupId = `vac_${Date.now().toString(36)}${Math.random().toString(36).substr(2)}`;
+            console.log('GroupId généré:', groupId);
+            
+            while (currentDate <= endDate) {
+                if (!isWeekend(currentDate)) {
+                    const eventData = {
+                        type: 'vacances',
+                        date: format(currentDate, 'yyyy-MM-dd'),
+                        employee_id: formData.employee_id,
+                        first_name: '',
+                        last_name: '',
+                        installation_number: '',
+                        installation_time: '',
+                        city: '',
+                        equipment: '',
+                        amount: '',
+                        technician1_id: null,
+                        technician2_id: null,
+                        technician3_id: null,
+                        technician4_id: null,
+                        region_id: null,
+                        startDate: format(startDate, 'yyyy-MM-dd'),
+                        endDate: format(endDate, 'yyyy-MM-dd'),
+                        vacation_group_id: groupId
+                    };
+
+                    console.log('Création événement vacances avec groupId:', eventData);
+                    await createEvent(eventData);
+                }
+                currentDate = addDays(currentDate, 1);
+            }
+            setShowAddEventModal(false);
+        } else {
+            // Code existant pour la création normale
+            const eventData = {
+                type: formData.type,
+                date: formatDateForAPI(selectedDate),
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                installation_number: formData.installation_number,
+                installation_time: formData.installation_time,
+                city: formData.city,
+                equipment: formData.equipment,
+                amount: formData.amount,
+                technician1_id: formData.technician1 || null,
+                technician2_id: formData.technician2 || null,
+                technician3_id: formData.technician3 || null,
+                technician4_id: formData.technician4 || null,
+                employee_id: formData.type === 'installation' ? null : formData.employee_id,
+                region_id: formData.region || null
+            };
+
+            await createEvent(eventData);
+            setShowAddEventModal(false);
         }
-      } else {
-        const eventData = {
-          type: formData.type,
-          date: formatDateForAPI(selectedDate),
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          installation_number: formData.installationNumber,
-          installation_time: formData.installationTime,
-          city: formData.city,
-          equipment: formData.equipment,
-          amount: formData.amount,
-          technician1_id: formData.technician1_id || null,
-          technician2_id: formData.technician2_id || null,
-          technician3_id: formData.technician3_id || null,
-          technician4_id: formData.technician4_id || null,
-          employee_id: formData.type === 'installation' ? null : formData.employee_id,
-          region_id: formData.region_id || null
-        };
 
-        await createEvent(eventData);
-      }
+        setSelectedDate(null);
+        
+        // Recharger les événements
+        const eventsData = await fetchEvents();
+        console.log('Événements après opération:', eventsData);
+        const groupedEvents = eventsData.reduce((acc, event) => {
+            if (!acc[event.date]) {
+                acc[event.date] = [];
+            }
+            acc[event.date].push(event);
+            return acc;
+        }, {});
 
-      setShowAddEventModal(false);
-      setSelectedDate(null);
-      
-      const eventsData = await fetchEvents();
-      console.log('Événements après création:', eventsData); // Debug
-      const groupedEvents = eventsData.reduce((acc, event) => {
-        if (!acc[event.date]) {
-          acc[event.date] = [];
-        }
-        acc[event.date].push(event);
-        return acc;
-      }, {});
-
-      setEvents(groupedEvents);
+        setEvents(groupedEvents);
     } catch (error) {
-      console.error('Erreur lors de l\'ajout:', error);
-      setError(`Erreur lors de l'ajout : ${error.message}`);
+        console.error('Erreur lors de l\'opération:', error);
+        setError(error.message);
     }
   };
 
-  const handleEditEventSubmit = async (formData) => {
+  const handleDeleteEvent = async (event) => {
     try {
-      const eventData = {
-        id: selectedEvent?.id,
-        type: formData.type || 'installation',
-        date: formData.date,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        installation_number: formData.installationNumber,
-        installation_time: formData.installationTime,
-        city: formData.city,
-        equipment: formData.equipment,
-        amount: formData.amount,
-        technician1_id: formData.technician1_id || null,
-        technician2_id: formData.technician2_id || null,
-        technician3_id: formData.technician3_id || null,
-        technician4_id: formData.technician4_id || null,
-        employee_id: formData.type === 'installation' ? null : formData.employee_id,
-        region_id: formData.region_id
-      };
-
-      await updateEvent(eventData);
-      setShowEditEventModal(false);
-      setSelectedEvent(null);
-      
-      const eventsData = await fetchEvents();
-      const groupedEvents = eventsData.reduce((acc, event) => {
-        if (!acc[event.date]) {
-          acc[event.date] = [];
-        }
-        acc[event.date].push(event);
-        return acc;
-      }, {});
-
-      setEvents(groupedEvents);
-    } catch (error) {
-      console.error('Erreur lors de la modification:', error);
-      setError(error.message);
-    }
-  };
-
-  const handleDeleteEvent = async (eventId) => {
-    try {
-      await deleteEvent(eventId);
+      await deleteEvent(event.id, event.deleteMode);
       setShowEventDetailsModal(false);
       setSelectedEvent(null);
       
@@ -365,21 +358,22 @@ const ProductionCalendar = () => {
             setShowEditEventModal(true);
           }}
           onDelete={(event) => {
-            handleDeleteEvent(event.id);
+            handleDeleteEvent(event);
             setShowEventDetailsModal(false);
           }}
         />
       )}
 
       {showEditEventModal && selectedEvent && (
-        <EditEventModal
+        <AddEventModal
           show={showEditEventModal}
           onHide={() => {
             setShowEditEventModal(false);
             setSelectedEvent(null);
           }}
+          onSubmit={handleAddEventSubmit}
           event={selectedEvent}
-          onSubmit={handleEditEventSubmit}
+          mode="edit"
           employees={employees}
         />
       )}

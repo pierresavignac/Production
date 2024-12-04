@@ -81,10 +81,10 @@ const AddInlineButton = styled.button`
 
 const formatTechnicians = (event) => {
   const technicians = [];
-  if (event.technician1_name) technicians.push(event.technician1_full_name);
-  if (event.technician2_name) technicians.push(event.technician2_full_name);
-  if (event.technician3_name) technicians.push(event.technician3_full_name);
-  if (event.technician4_name) technicians.push(event.technician4_full_name);
+  if (event.technician1_name) technicians.push(event.technician1_name);
+  if (event.technician2_name) technicians.push(event.technician2_name);
+  if (event.technician3_name) technicians.push(event.technician3_name);
+  if (event.technician4_name) technicians.push(event.technician4_name);
   return technicians.join(', ');
 };
 

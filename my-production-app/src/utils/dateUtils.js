@@ -15,27 +15,27 @@ export const isCurrentWeek = (date) => {
 
 export const calculateWeeks = (currentDate) => {
   const weeks = [];
-  const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-  
-  // Générer la semaine courante et les 3 semaines suivantes
-  for (let i = 0; i <= 3; i++) {
-    const weekStart = addWeeks(startDate, i);
-    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+  let startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
+
+  // Générer 6 semaines (semaine courante + 5 suivantes)
+  for (let i = 0; i < 6; i++) {
+    const endDate = endOfWeek(startDate, { weekStartsOn: 1 });
     const weekDays = [];
-    
+
     // Générer les jours de la semaine (lundi à vendredi)
     for (let j = 0; j < 5; j++) {
-      const day = addDays(weekStart, j);
-      weekDays.push(day);
+      weekDays.push(addDays(startDate, j));
     }
-    
+
     weeks.push({
-      start: weekStart,
-      end: weekEnd,
+      start: startDate,
+      end: endDate,
       weekDays
     });
+
+    startDate = addWeeks(startDate, 1);
   }
-  
+
   return weeks;
 };
 
