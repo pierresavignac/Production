@@ -1,0 +1,222 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.installation-modal {
+  max-width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.technicians-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background: #45a049;
+}
+
+.installation-number-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.installation-number-input .prefix {
+  position: absolute;
+  left: 8px;
+  color: #666;
+}
+
+.installation-number-input input {
+  padding-left: 45px;
+}
+
+.amount-input {
+  position: relative;
+}
+
+.amount-input .currency {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.amount-input input {
+  padding-left: 20px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.detail-item {
+  display: contents;
+}
+
+.detail-item label {
+  font-weight: 500;
+  color: #666;
+  padding-right: 10px;
+}
+
+.detail-item span {
+  color: #333;
+}
+
+.edit-button {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background: #1976D2;
+}
+
+.delete-button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #d32f2f;
+}
+
+.equipment-modal {
+  max-width: 400px;
+}
+
+.equipment-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.equipment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.equipment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.equipment-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.add-equipment-button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 10px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-equipment-button:hover {
+  background: #45a049;
+} 
