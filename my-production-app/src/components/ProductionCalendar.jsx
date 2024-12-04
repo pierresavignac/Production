@@ -431,10 +431,12 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    console.log('handleChange:', { name, value, previousValue: formData[name] });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleInstallationNumberChange = (e) => {
@@ -473,606 +475,7 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
               <option value="installation">Installation</option>
               <option value="conge">Congé</option>
               <option value="maladie">Maladie</option>
-            </select>
-          </div>
-
-          {formData.type === 'installation' && (
-            <>
-              <div className="form-row-grid">
-                <div className="form-group">
-                  <label>Numéro d'installation</label>
-                  <div className="installation-number-input">
-                    <span className="prefix">INS0</span>
-                    <input
-                      type="text"
-                      name="installationNumber"
-                      placeholder="12345"
-                      value={formData.installationNumber.replace('INS0', '')}
-                      onChange={handleInstallationNumberChange}
-                      pattern="[0-9]*"
-                      maxLength="5"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Heure d'installation</label>
-                  <input
-                    type="time"
-                    name="installationTime"
-                    value={formData.installationTime}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row-grid">
-                <div className="form-group">
-                  <label>Prénom</label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="Prénom"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Nom</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Nom"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row-grid">
-                <div className="form-group">
-                  <label>Région</label>
-                  <select
-                    name="region_id"
-                    value={formData.region_id}
-                    onChange={handleRegionChange}
-                    required
-                  >
-                    <option value="">Sélectionnez une région</option>
-                    {regions.map(region => (
-                      <option key={region.id} value={region.id}>
-                        {region.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Ville</label>
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    disabled={!formData.region_id}
-                  >
-                    <option value="">Sélectionnez une ville</option>
-                    {cities.map(city => (
-                      <option key={city.id} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row-grid">
-                <div className="form-group">
-                  <label>Équipements à installer</label>
-                  <select
-                    name="equipment"
-                    value={formData.equipment}
-                    onChange={handleEquipmentChange}
-                    required
-                  >
-                    <option value="">Sélectionnez un équipement</option>
-                    {equipment.map(item => (
-                      <option key={item.id} value={item.name}>
-                        {item.name}
-                      </option>
-                    ))}
-                    <option value="add">+ Ajouter un nouvel équipement</option>
-                    <option value="manage">⚙️ Gérer les équipements</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Montant à collecter ($ CAD)</label>
-                  <div className="amount-input">
-                    <span className="currency">$</span>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      required
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-row-grid technicians-grid">
-                <div className="form-group">
-                  <label>Technicien principal</label>
-                  <select
-                    name="technician1_id"
-                    value={formData.technician1_id}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Sélectionnez le technicien</option>
-                    {employees.map(employee => (
-                      <option key={employee.id} value={employee.id}>
-                        {`${employee.first_name} ${employee.last_name}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Technicien supplémentaire 1</label>
-                  <select
-                    name="technician2_id"
-                    value={formData.technician2_id}
-                    onChange={handleChange}
-                  >
-                    <option value="">Optionnel</option>
-                    {employees.map(employee => (
-                      <option key={employee.id} value={employee.id}>
-                        {`${employee.first_name} ${employee.last_name}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Technicien supplémentaire 2</label>
-                  <select
-                    name="technician3_id"
-                    value={formData.technician3_id}
-                    onChange={handleChange}
-                  >
-                    <option value="">Optionnel</option>
-                    {employees.map(employee => (
-                      <option key={employee.id} value={employee.id}>
-                        {`${employee.first_name} ${employee.last_name}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Technicien supplémentaire 3</label>
-                  <select
-                    name="technician4_id"
-                    value={formData.technician4_id}
-                    onChange={handleChange}
-                  >
-                    <option value="">Optionnel</option>
-                    {employees.map(employee => (
-                      <option key={employee.id} value={employee.id}>
-                        {`${employee.first_name} ${employee.last_name}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-
-          {(formData.type === 'conge' || formData.type === 'maladie') && (
-            <div className="form-group">
-              <label>Employé</label>
-              <select
-                name="employeeId"
-                value={formData.employeeId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Sélectionnez un employé</option>
-                {employees.map(employee => (
-                  <option key={employee.id} value={employee.id}>
-                    {`${employee.first_name} ${employee.last_name}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="button-group">
-            <button type="button" onClick={onClose} className="close-button">
-              Annuler
-            </button>
-            <button 
-              type="submit" 
-              className="action-button"
-              disabled={!formData.type}
-            >
-              Ajouter
-            </button>
-          </div>
-        </form>
-
-        {showEquipmentModal && (
-          <div className="modal-overlay">
-            <div className="modal-content equipment-modal">
-              <div className="modal-header">
-                <h3>{selectedEquipment ? 'Modifier l\'équipement' : 'Gérer les équipements'}</h3>
-                <button onClick={() => {
-                  setShowEquipmentModal(false);
-                  setSelectedEquipment(null);
-                }} className="close-button">&times;</button>
-              </div>
-              
-              {!selectedEquipment && (
-                <div className="equipment-list">
-                  {equipment.map(item => (
-                    <div key={item.id} className="equipment-item">
-                      <span>{item.name}</span>
-                      <div className="equipment-actions">
-                        <button onClick={() => setSelectedEquipment(item)}>✏️</button>
-                        <button onClick={() => handleDeleteEquipment(item.id)}>️</button>
-                      </div>
-                    </div>
-                  ))}
-                  <button 
-                    className="add-equipment-button"
-                    onClick={() => setSelectedEquipment({ id: null, name: '' })}
-                  >
-                    + Ajouter un équipement
-                  </button>
-                </div>
-              )}
-              
-              {selectedEquipment && (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (selectedEquipment.id) {
-                    handleEditEquipment(selectedEquipment.id, selectedEquipment.name);
-                  } else {
-                    handleAddEquipment(selectedEquipment.name);
-                  }
-                }}>
-                  <div className="form-group">
-                    <label>Nom de l'équipement</label>
-                    <input
-                      type="text"
-                      value={selectedEquipment.name}
-                      onChange={(e) => setSelectedEquipment(prev => ({
-                        ...prev,
-                        name: e.target.value
-                      }))}
-                      required
-                    />
-                  </div>
-                  <div className="button-group">
-                    <button type="button" onClick={() => setSelectedEquipment(null)}>
-                      Annuler
-                    </button>
-                    <button type="submit">
-                      {selectedEquipment.id ? 'Modifier' : 'Ajouter'}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Composant Modal de détails d'événement
-const EventDetailsModal = ({ event, onClose, onDelete, onEdit }) => {
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>
-            {event.type === 'conge' ? 'Détails du congé' : 
-             event.type === 'maladie' ? 'Détails de l\'arrêt maladie' : 
-             'Détails de l\'installation'}
-          </h2>
-          <button onClick={onClose} className="close-button">&times;</button>
-        </div>
-        <div className="modal-body">
-          {event.type === 'installation' ? (
-            <div className="installation-details">
-              <strong>Installation</strong>
-              <div className="time">{event.installation_time}</div>
-              <div className="client">
-                {event.first_name} {event.last_name}
-              </div>
-              <div className="installation-number">N° {event.installation_number}</div>
-              <div className="location">
-                {event.city}
-                {event.region_name && ` (${event.region_name})`}
-              </div>
-              <div className="equipment">{event.equipment}</div>
-              <div className="amount">Montant : {event.amount ? `${event.amount} $ CAD` : '0.00 $ CAD'}</div>
-              <div className="technicians">
-                {[
-                  event.technician1_name,
-                  event.technician2_name,
-                  event.technician3_name,
-                  event.technician4_name
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-              </div>
-            </div>
-          ) : (
-            <>
-              <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
-              <div>{event.employee_name}</div>
-            </>
-          )}
-          <p><strong>Date :</strong> {format(new Date(event.date), 'dd/MM/yyyy')}</p>
-        </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="close-button">Fermer</button>
-          <button onClick={onEdit} className="edit-button">Modifier</button>
-          <button onClick={() => onDelete(event.id)} className="delete-button">
-            Supprimer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Composant Modal de modification d'événement
-const EditEventModal = ({ event, onClose, onSubmit, employees }) => {
-  console.log('Données de l\'événement à éditer:', event);
-
-  const [regions, setRegions] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [equipment, setEquipment] = useState([]);
-  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
-  const [formData, setFormData] = useState({
-    type: event.type || '',
-    firstName: event.first_name || '',
-    lastName: event.last_name || '',
-    installationNumber: event.installation_number || 'INS0',
-    installationTime: event.installation_time || '08:00',
-    region_id: event.region_id || '16',
-    city: event.city || '',
-    equipment: event.equipment || '',
-    amount: event.amount || '',
-    technician1_id: event.technician1_id || '',
-    technician2_id: event.technician2_id || '',
-    technician3_id: event.technician3_id || '',
-    technician4_id: event.technician4_id || '',
-    employeeId: event.employee_id || ''
-  });
-
-  // Charger les équipements
-  useEffect(() => {
-    const loadEquipment = async () => {
-      try {
-        const response = await fetch('https://app.vivreenliberte.org/api/equipment.php');
-        const data = await response.json();
-        setEquipment(data);
-      } catch (error) {
-        console.error('Erreur lors du chargement des équipements:', error);
-      }
-    };
-    loadEquipment();
-  }, []);
-
-  const handleEquipmentChange = (e) => {
-    const value = e.target.value;
-    if (value === 'add') {
-      setShowEquipmentModal(true);
-    } else if (value === 'manage') {
-      setShowEquipmentModal(true);
-      setSelectedEquipment(null);
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        equipment: value
-      }));
-    }
-  };
-
-  const handleAddEquipment = async (name) => {
-    try {
-      const response = await fetch('https://app.vivreenliberte.org/api/equipment.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name })
-      });
-      
-      if (!response.ok) throw new Error('Erreur lors de l\'ajout');
-      
-      // Recharger la liste des équipements
-      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
-      const data = await equipmentResponse.json();
-      setEquipment(data);
-      setShowEquipmentModal(false);
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
-
-  const handleEditEquipment = async (id, name) => {
-    try {
-      const response = await fetch('https://app.vivreenliberte.org/api/equipment.php', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id, name })
-      });
-      
-      if (!response.ok) throw new Error('Erreur lors de la modification');
-      
-      // Recharger la liste des équipements
-      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
-      const data = await equipmentResponse.json();
-      setEquipment(data);
-      setShowEquipmentModal(false);
-      setSelectedEquipment(null);
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
-
-  const handleDeleteEquipment = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) return;
-    
-    try {
-      const response = await fetch(`https://app.vivreenliberte.org/api/equipment.php?id=${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('Erreur lors de la suppression');
-      
-      // Recharger la liste des équipements
-      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
-      const data = await equipmentResponse.json();
-      setEquipment(data);
-      setSelectedEquipment(null);
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
-
-  // Effet pour charger les régions et les villes initiales
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        // Charger les régions
-        const regionsResponse = await fetch('https://app.vivreenliberte.org/api/regions.php?type=regions');
-        const regionsData = await regionsResponse.json();
-        console.log('Régions chargées:', regionsData);
-        setRegions(regionsData);
-
-        // Si l'événement a une ville mais pas de région, chercher la région correspondante
-        if (event.city && !event.region_id) {
-          // Charger toutes les villes pour trouver la région correspondante
-          for (const region of regionsData) {
-            const citiesResponse = await fetch(`https://app.vivreenliberte.org/api/regions.php?region_id=${region.id}`);
-            const citiesData = await citiesResponse.json();
-            const cityFound = citiesData.find(c => c.name.toLowerCase() === event.city.toLowerCase());
-            if (cityFound) {
-              console.log('Région trouvée pour la ville:', region.id);
-              setFormData(prev => ({
-                ...prev,
-                region_id: region.id
-              }));
-              setCities(citiesData);
-              break;
-            }
-          }
-        }
-        // Si l'événement a une région, charger ses villes
-        else if (event.region_id) {
-          console.log('Chargement des villes pour la région:', event.region_id);
-          const citiesResponse = await fetch(`https://app.vivreenliberte.org/api/regions.php?region_id=${event.region_id}`);
-          const citiesData = await citiesResponse.json();
-          console.log('Villes chargées:', citiesData);
-          setCities(citiesData);
-        }
-        // Si pas de région définie, charger les villes de la Montérégie par défaut
-        else {
-          const citiesResponse = await fetch('https://app.vivreenliberte.org/api/regions.php?region_id=16');
-          const citiesData = await citiesResponse.json();
-          setCities(citiesData);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-      }
-    };
-
-    loadInitialData();
-  }, [event]);
-
-  const handleRegionChange = async (e) => {
-    const regionId = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      region_id: regionId,
-      city: ''
-    }));
-
-    if (regionId) {
-      try {
-        const response = await fetch(`https://app.vivreenliberte.org/api/regions.php?region_id=${regionId}`);
-        const data = await response.json();
-        setCities(data);
-      } catch (error) {
-        console.error('Erreur lors du chargement des villes:', error);
-      }
-    } else {
-      setCities([]);
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleInstallationNumberChange = (e) => {
-    const value = e.target.value;
-    const numbers = value.replace(/\D/g, '');
-    const limitedNumbers = numbers.slice(0, 5);
-    setFormData(prev => ({
-      ...prev,
-      installationNumber: `INS0${limitedNumbers}`
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Données du formulaire avant soumission:', formData);
-    onSubmit(formData);
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className={`modal-content ${formData.type === 'installation' ? 'installation-modal' : ''}`}>
-        <div className="modal-header">
-          <h2>Modifier la tâche</h2>
-          <button onClick={onClose} className="close-button">&times;</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Type de tâche</label>
-            <select 
-              name="type" 
-              value={formData.type} 
-              onChange={handleChange}
-              required
-            >
-              <option value="installation">Installation</option>
-              <option value="conge">Congé</option>
-              <option value="maladie">Maladie</option>
+              <option value="formation">Formation</option>
             </select>
           </div>
 
@@ -1276,12 +679,653 @@ const EditEventModal = ({ event, onClose, onSubmit, employees }) => {
                 </div>
               </div>
             </>
-          ) : (
+          ) : (formData.type === 'conge' || formData.type === 'maladie' || formData.type === 'formation') && (
             <div className="form-group">
               <label>Employé</label>
               <select
                 name="employeeId"
                 value={formData.employeeId}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Sélectionnez un employé</option>
+                {employees.map(employee => (
+                  <option key={employee.id} value={employee.id}>
+                    {`${employee.first_name} ${employee.last_name}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="button-group">
+            <button type="button" onClick={onClose} className="close-button">
+              Annuler
+            </button>
+            <button 
+              type="submit" 
+              className="action-button"
+              disabled={!formData.type}
+            >
+              Ajouter
+            </button>
+          </div>
+        </form>
+
+        {showEquipmentModal && (
+          <div className="modal-overlay">
+            <div className="modal-content equipment-modal">
+              <div className="modal-header">
+                <h3>{selectedEquipment ? 'Modifier l\'équipement' : 'Gérer les équipements'}</h3>
+                <button onClick={() => {
+                  setShowEquipmentModal(false);
+                  setSelectedEquipment(null);
+                }} className="close-button">&times;</button>
+              </div>
+              
+              {!selectedEquipment && (
+                <div className="equipment-list">
+                  {equipment.map(item => (
+                    <div key={item.id} className="equipment-item">
+                      <span>{item.name}</span>
+                      <div className="equipment-actions">
+                        <button onClick={() => setSelectedEquipment(item)}>✏️</button>
+                        <button onClick={() => handleDeleteEquipment(item.id)}>️</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button 
+                    className="add-equipment-button"
+                    onClick={() => setSelectedEquipment({ id: null, name: '' })}
+                  >
+                    + Ajouter un équipement
+                  </button>
+                </div>
+              )}
+              
+              {selectedEquipment && (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (selectedEquipment.id) {
+                    handleEditEquipment(selectedEquipment.id, selectedEquipment.name);
+                  } else {
+                    handleAddEquipment(selectedEquipment.name);
+                  }
+                }}>
+                  <div className="form-group">
+                    <label>Nom de l'équipement</label>
+                    <input
+                      type="text"
+                      value={selectedEquipment.name}
+                      onChange={(e) => setSelectedEquipment(prev => ({
+                        ...prev,
+                        name: e.target.value
+                      }))}
+                      required
+                    />
+                  </div>
+                  <div className="button-group">
+                    <button type="button" onClick={() => setSelectedEquipment(null)}>
+                      Annuler
+                    </button>
+                    <button type="submit">
+                      {selectedEquipment.id ? 'Modifier' : 'Ajouter'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Composant Modal de détails d'événement
+const EventDetailsModal = ({ event, onClose, onDelete, onEdit }) => {
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>
+            {event.type === 'conge' ? 'Détails du congé' : 
+             event.type === 'maladie' ? 'Détails de l\'arrêt maladie' : 
+             event.type === 'formation' ? 'Détails de la formation' :
+             'Détails de l\'installation'}
+          </h2>
+          <button onClick={onClose} className="close-button">&times;</button>
+        </div>
+        <div className="modal-body">
+          {event.type === 'installation' ? (
+            <div className="installation-details">
+              <strong>Installation</strong>
+              <div className="time">{event.installation_time}</div>
+              <div className="client">
+                {event.first_name} {event.last_name}
+              </div>
+              <div className="installation-number">N° {event.installation_number}</div>
+              <div className="location">
+                {event.city}
+                {event.region_name && ` (${event.region_name})`}
+              </div>
+              <div className="equipment">{event.equipment}</div>
+              <div className="amount">Montant : {event.amount ? `${event.amount} $ CAD` : '0.00 $ CAD'}</div>
+              <div className="technicians">
+                {[
+                  event.technician1_name,
+                  event.technician2_name,
+                  event.technician3_name,
+                  event.technician4_name
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
+              </div>
+            </div>
+          ) : (
+            <>
+              <strong>
+                {event.type === 'conge' ? 'Congé' : 
+                 event.type === 'maladie' ? 'Maladie' : 
+                 'Formation'}
+              </strong>
+              <div>{event.employee_name}</div>
+            </>
+          )}
+          <p><strong>Date :</strong> {format(new Date(event.date), 'dd/MM/yyyy')}</p>
+        </div>
+        <div className="modal-footer">
+          <button onClick={onClose} className="close-button">Fermer</button>
+          <button onClick={onEdit} className="edit-button">Modifier</button>
+          <button 
+            onClick={() => onDelete(event.id)} // S'assurer que l'ID est passé ici
+            className="delete-button"
+          >
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Composant Modal de modification d'événement
+const EditEventModal = ({ event, onClose, onSubmit, employees }) => {
+  // Ajoutons des logs détaillés pour l'événement reçu
+  console.log('Événement complet reçu dans EditEventModal:', JSON.stringify(event, null, 2));
+
+  // Ajouter les états manquants
+  const [regions, setRegions] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [equipment, setEquipment] = useState([]);
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState(null);
+
+  // Initialisation de formData avec des valeurs par défaut explicites
+  const [formData, setFormData] = useState({
+    type: event.type || 'installation',
+    firstName: event.first_name || '',
+    lastName: event.last_name || '',
+    installationNumber: event.installation_number || 'INS0',
+    installationTime: event.installation_time || '08:00',
+    region_id: event.region_id || '',
+    city: event.city || '',
+    equipment: event.equipment || '',
+    amount: event.amount || '',
+    technician1_id: event.technician1_id || '',
+    technician2_id: event.technician2_id || '',
+    technician3_id: event.technician3_id || '',
+    technician4_id: event.technician4_id || '',
+    employee_id: event.employee_id || '',
+    date: event.date || new Date().toISOString().split('T')[0]
+  });
+
+  // Mise à jour du useEffect qui met à jour formData
+  useEffect(() => {
+    console.log('Mise à jour de formData avec le nouvel événement:', event);
+    setFormData({
+      type: event.type || 'installation',
+      firstName: event.first_name || '',
+      lastName: event.last_name || '',
+      installationNumber: event.installation_number || 'INS0',
+      installationTime: event.installation_time || '08:00',
+      region_id: event.region_id || '',
+      city: event.city || '',
+      equipment: event.equipment || '',
+      amount: event.amount || '',
+      technician1_id: event.technician1_id || '',
+      technician2_id: event.technician2_id || '',
+      technician3_id: event.technician3_id || '',
+      technician4_id: event.technician4_id || '',
+      employee_id: event.employee_id || '',
+      date: event.date || new Date().toISOString().split('T')[0]
+    });
+  }, [event]);
+
+  // Charger les données initiales (régions et équipements)
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        // Charger les régions
+        const regionsResponse = await fetch('https://app.vivreenliberte.org/api/regions.php?type=regions');
+        const regionsData = await regionsResponse.json();
+        console.log('Régions chargées:', regionsData);
+        setRegions(regionsData);
+
+        // Charger les équipements
+        const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
+        const equipmentData = await equipmentResponse.json();
+        console.log('Équipements chargés:', equipmentData);
+        setEquipment(equipmentData);
+
+        // Si une région est déjà sélectionnée, charger ses villes
+        if (event.region_id) {
+          const citiesResponse = await fetch(`https://app.vivreenliberte.org/api/regions.php?region_id=${event.region_id}`);
+          const citiesData = await citiesResponse.json();
+          console.log('Villes chargées pour la région initiale:', citiesData);
+          setCities(citiesData);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+      }
+    };
+
+    loadInitialData();
+  }, [event.region_id]); // Dépendance à event.region_id
+
+  // Effet pour charger les villes quand la région change
+  useEffect(() => {
+    const loadCities = async () => {
+      if (formData.region_id) {
+        try {
+          console.log('Chargement des villes pour la région:', formData.region_id);
+          const response = await fetch(`https://app.vivreenliberte.org/api/regions.php?region_id=${formData.region_id}`);
+          const data = await response.json();
+          console.log('Villes chargées:', data);
+          setCities(data);
+        } catch (error) {
+          console.error('Erreur lors du chargement des villes:', error);
+          setCities([]);
+        }
+      } else {
+        setCities([]);
+      }
+    };
+
+    loadCities();
+  }, [formData.region_id]);
+
+  // Log pour suivre les changements de formData
+  useEffect(() => {
+    console.log('FormData actuel:', formData);
+  }, [formData]);
+
+  // Gérer le changement de région
+  const handleRegionChange = async (e) => {
+    const regionId = e.target.value;
+    console.log('Changement de région:', regionId);
+    
+    setFormData(prev => ({
+      ...prev,
+      region_id: regionId,
+      city: '' // Réinitialiser la ville car elle n'est plus valide
+    }));
+  };
+
+  // Gérer les changements de formulaire
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    console.log('handleChange:', { name, value, previousValue: formData[name] });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleInstallationNumberChange = (e) => {
+    const value = e.target.value;
+    const numbers = value.replace(/\D/g, '');
+    const limitedNumbers = numbers.slice(0, 5);
+    setFormData(prev => ({
+      ...prev,
+      installationNumber: `INS0${limitedNumbers}`
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Données du formulaire avant soumission:', formData);
+    onSubmit(formData);
+  };
+
+  // Ajouter la fonction handleEquipmentChange
+  const handleEquipmentChange = (e) => {
+    const value = e.target.value;
+    if (value === 'add') {
+      setShowEquipmentModal(true);
+    } else if (value === 'manage') {
+      setShowEquipmentModal(true);
+      setSelectedEquipment(null);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        equipment: value
+      }));
+    }
+  };
+
+  // Ajouter les fonctions de gestion des équipements
+  const handleAddEquipment = async (name) => {
+    try {
+      const response = await fetch('https://app.vivreenliberte.org/api/equipment.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name })
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de l\'ajout');
+      
+      // Recharger la liste des équipements
+      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
+      const data = await equipmentResponse.json();
+      setEquipment(data);
+      setShowEquipmentModal(false);
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
+  };
+
+  const handleEditEquipment = async (id, name) => {
+    try {
+      const response = await fetch('https://app.vivreenliberte.org/api/equipment.php', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, name })
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la modification');
+      
+      // Recharger la liste des équipements
+      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
+      const data = await equipmentResponse.json();
+      setEquipment(data);
+      setShowEquipmentModal(false);
+      setSelectedEquipment(null);
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
+  };
+
+  const handleDeleteEquipment = async (id) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) return;
+    
+    try {
+      const response = await fetch(`https://app.vivreenliberte.org/api/equipment.php?id=${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la suppression');
+      
+      // Recharger la liste des équipements
+      const equipmentResponse = await fetch('https://app.vivreenliberte.org/api/equipment.php');
+      const data = await equipmentResponse.json();
+      setEquipment(data);
+      setSelectedEquipment(null);
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className={`modal-content ${formData.type === 'installation' ? 'installation-modal' : ''}`}>
+        <div className="modal-header">
+          <h2>Modifier la tâche</h2>
+          <button onClick={onClose} className="close-button">&times;</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Type de tâche</label>
+            <select 
+              name="type" 
+              value={formData.type} 
+              onChange={handleChange}
+              required
+            >
+              <option value="installation">Installation</option>
+              <option value="conge">Congé</option>
+              <option value="maladie">Maladie</option>
+              <option value="formation">Formation</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {formData.type === 'installation' ? (
+            <>
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label>Numéro d'installation</label>
+                  <div className="installation-number-input">
+                    <span className="prefix">INS0</span>
+                    <input
+                      type="text"
+                      name="installationNumber"
+                      placeholder="12345"
+                      value={formData.installationNumber.replace('INS0', '')}
+                      onChange={handleInstallationNumberChange}
+                      pattern="[0-9]*"
+                      maxLength="5"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Heure d'installation</label>
+                  <input
+                    type="time"
+                    name="installationTime"
+                    value={formData.installationTime}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label>Prénom</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    placeholder="Prénom"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Nom</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    placeholder="Nom"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label>Région</label>
+                  <select
+                    name="region_id"
+                    value={formData.region_id}
+                    onChange={handleRegionChange}
+                    required
+                  >
+                    <option value="">Sélectionnez une région</option>
+                    {regions.map(region => (
+                      <option key={region.id} value={region.id}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Ville</label>
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.region_id}
+                  >
+                    <option value="">Sélectionnez une ville</option>
+                    {cities && cities.length > 0 ? (
+                      cities.map(city => (
+                        <option key={city.id} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {formData.region_id ? 'Chargement des villes...' : 'Sélectionnez d\'abord une région'}
+                      </option>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label>Équipements à installer</label>
+                  <select
+                    name="equipment"
+                    value={formData.equipment}
+                    onChange={handleEquipmentChange}
+                    required
+                  >
+                    <option value="">Sélectionnez un équipement</option>
+                    {equipment.map(item => (
+                      <option key={item.id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                    <option value="add">+ Ajouter un nouvel équipement</option>
+                    <option value="manage">⚙️ Gérer les équipements</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Montant à collecter ($ CAD)</label>
+                  <div className="amount-input">
+                    <span className="currency">$</span>
+                    <input
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      required
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row-grid technicians-grid">
+                <div className="form-group">
+                  <label>Technicien principal</label>
+                  <select
+                    name="technician1_id"
+                    value={formData.technician1_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Sélectionnez le technicien</option>
+                    {employees.map(employee => (
+                      <option key={employee.id} value={employee.id}>
+                        {`${employee.first_name} ${employee.last_name}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Technicien supplémentaire 1</label>
+                  <select
+                    name="technician2_id"
+                    value={formData.technician2_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">Optionnel</option>
+                    {employees.map(employee => (
+                      <option key={employee.id} value={employee.id}>
+                        {`${employee.first_name} ${employee.last_name}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Technicien supplémentaire 2</label>
+                  <select
+                    name="technician3_id"
+                    value={formData.technician3_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">Optionnel</option>
+                    {employees.map(employee => (
+                      <option key={employee.id} value={employee.id}>
+                        {`${employee.first_name} ${employee.last_name}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Technicien supplémentaire 3</label>
+                  <select
+                    name="technician4_id"
+                    value={formData.technician4_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">Optionnel</option>
+                    {employees.map(employee => (
+                      <option key={employee.id} value={employee.id}>
+                        {`${employee.first_name} ${employee.last_name}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (formData.type === 'conge' || formData.type === 'maladie' || formData.type === 'formation') && (
+            <div className="form-group">
+              <label>Employé</label>
+              <select
+                name="employee_id"
+                value={formData.employee_id}
                 onChange={handleChange}
                 required
               >
@@ -1331,7 +1375,7 @@ const EditEventModal = ({ event, onClose, onSubmit, employees }) => {
                     className="add-equipment-button"
                     onClick={() => setSelectedEquipment({ id: null, name: '' })}
                   >
-                    + Ajouter un équipement
+                    + Ajouter un ��quipement
                   </button>
                 </div>
               )}
@@ -1456,11 +1500,15 @@ const BlockView = () => {
                           padding: '8px',
                           margin: '4px 0',
                           background: event.type === 'installation' ? '#e3f2fd' : 
-                                     event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                     event.type === 'maladie' ? '#ffebee' : 
+                                     event.type === 'formation' ? '#ffebee' :
+                                     '#e8f5e9',
                           borderRadius: '4px',
                           border: '1px solid ' + (
                             event.type === 'installation' ? '#bbdefb' : 
-                            event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                            event.type === 'maladie' ? '#ffcdd2' : 
+                            event.type === 'formation' ? '#ffcdd2' :
+                            '#c8e6c9'
                           )
                         }}
                       >
@@ -1493,7 +1541,11 @@ const BlockView = () => {
                           </div>
                         ) : (
                           <>
-                            <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                            <strong>
+                              {event.type === 'conge' ? 'Congé' : 
+                               event.type === 'maladie' ? 'Maladie' : 
+                               'Formation'}
+                            </strong>
                             <div>{event.employee_name}</div>
                           </>
                         )}
@@ -1521,11 +1573,15 @@ const BlockView = () => {
                         padding: '8px',
                         margin: '4px 0',
                         background: event.type === 'installation' ? '#e3f2fd' : 
-                                   event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                   event.type === 'maladie' ? '#ffebee' : 
+                                   event.type === 'formation' ? '#ffebee' :
+                                   '#e8f5e9',
                         borderRadius: '4px',
                         border: '1px solid ' + (
                           event.type === 'installation' ? '#bbdefb' : 
-                          event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                          event.type === 'maladie' ? '#ffcdd2' : 
+                          event.type === 'formation' ? '#ffcdd2' :
+                          '#c8e6c9'
                         )
                       }}
                     >
@@ -1558,7 +1614,11 @@ const BlockView = () => {
                         </div>
                       ) : (
                         <>
-                          <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                          <strong>
+                            {event.type === 'conge' ? 'Congé' : 
+                             event.type === 'maladie' ? 'Maladie' : 
+                             'Formation'}
+                          </strong>
                           <div>{event.employee_name}</div>
                         </>
                       )}
@@ -1584,11 +1644,15 @@ const BlockView = () => {
                         padding: '8px',
                         margin: '4px 0',
                         background: event.type === 'installation' ? '#e3f2fd' : 
-                                   event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                   event.type === 'maladie' ? '#ffebee' : 
+                                   event.type === 'formation' ? '#ffebee' :
+                                   '#e8f5e9',
                         borderRadius: '4px',
                         border: '1px solid ' + (
                           event.type === 'installation' ? '#bbdefb' : 
-                          event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                          event.type === 'maladie' ? '#ffcdd2' : 
+                          event.type === 'formation' ? '#ffcdd2' :
+                          '#c8e6c9'
                         )
                       }}
                     >
@@ -1621,7 +1685,11 @@ const BlockView = () => {
                         </div>
                       ) : (
                         <>
-                          <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                          <strong>
+                            {event.type === 'conge' ? 'Congé' : 
+                             event.type === 'maladie' ? 'Maladie' : 
+                             'Formation'}
+                          </strong>
                           <div>{event.employee_name}</div>
                         </>
                       )}
@@ -1651,8 +1719,17 @@ const ProductionCalendar = () => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    loadEvents();
-    loadEmployees();
+    const initializeApp = async () => {
+      try {
+        await loadEmployees();
+        await loadEvents();
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+        setError('Erreur lors du chargement des données. Veuillez rafraîchir la page.');
+      }
+    };
+
+    initializeApp();
   }, []);
 
   // Supprimer tous les autres useEffect liés au scroll
@@ -1684,7 +1761,17 @@ const ProductionCalendar = () => {
 
   const loadEvents = async () => {
     try {
-      const response = await fetch('https://app.vivreenliberte.org/api/events.php');
+      const response = await fetch('https://app.vivreenliberte.org/api/events.php', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
       const text = await response.text();
       console.log('Réponse brute du chargement:', text);
       
@@ -1697,23 +1784,10 @@ const ProductionCalendar = () => {
 
       // Grouper les événements par date
       const groupedEvents = data.data.reduce((acc, event) => {
-        console.log('Traitement événement:', event);
-        
         if (!acc[event.date]) {
           acc[event.date] = [];
         }
-        
-        // S'assurer que tous les champs sont présents
-        const processedEvent = {
-          ...event,
-          installation_number: event.installation_number || '',
-          technician1_name: event.technician1_name || '',
-          technician2_name: event.technician2_name || '',
-          technician3_name: event.technician3_name || '',
-          technician4_name: event.technician4_name || ''
-        };
-        
-        acc[event.date].push(processedEvent);
+        acc[event.date].push(event);
         return acc;
       }, {});
 
@@ -1728,11 +1802,28 @@ const ProductionCalendar = () => {
   const loadEmployees = async () => {
     try {
       const response = await fetch('https://app.vivreenliberte.org/api/employees.php');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Réponse du serveur:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setEmployees(data);
+      console.log('Données employés chargées:', data);
+      
+      // Vérifier si les données sont un tableau
+      if (Array.isArray(data)) {
+        setEmployees(data);
+      } else if (data.data && Array.isArray(data.data)) {
+        setEmployees(data.data);
+      } else {
+        console.error('Format de données employés invalide:', data);
+        setEmployees([]);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des employés:', error);
-      setError(error.message);
+      setError(`Erreur lors du chargement des employés: ${error.message}`);
+      setEmployees([]);
     }
   };
 
@@ -1742,27 +1833,34 @@ const ProductionCalendar = () => {
   };
 
   const handleEventClick = (event) => {
-    console.log('Clic sur l\'événement:', event);
+    console.log('Événement sélectionné pour édition:', JSON.stringify(event, null, 2));
     setSelectedEvent(event);
     setShowEventDetailsModal(true);
   };
 
   const handleDeleteEvent = async (eventId) => {
     try {
+      // Demander confirmation avant la suppression
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+        return;
+      }
+
       console.log('Suppression de l\'événement:', eventId);
       const response = await fetch(`https://app.vivreenliberte.org/api/events.php?id=${eventId}`, {
         method: 'DELETE',
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
       });
 
       console.log('Statut de la réponse:', response.status);
       const text = await response.text();
-      console.log('Rponse de la suppression:', text);
+      console.log('Réponse de la suppression:', text);
 
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.message || `Erreur HTTP: ${response.status}`);
       }
 
       // Fermer le modal de détails
@@ -1774,7 +1872,7 @@ const ProductionCalendar = () => {
 
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      setError(error.message);
+      setError(`Erreur lors de la suppression : ${error.message}`);
     }
   };
 
@@ -1796,10 +1894,11 @@ const ProductionCalendar = () => {
         technician2_id: formData.technician2_id || null,
         technician3_id: formData.technician3_id || null,
         technician4_id: formData.technician4_id || null,
-        employee_id: formData.type === 'installation' ? null : formData.employeeId
+        employee_id: formData.type === 'installation' ? null : formData.employeeId,
+        region_id: formData.region_id || null
       };
 
-      console.log('Donn��es envoyées à l\'API:', eventData);
+      console.log('Données envoyées à l\'API:', eventData);
 
       const response = await fetch('https://app.vivreenliberte.org/api/events.php', {
         method: 'POST',
@@ -1813,24 +1912,27 @@ const ProductionCalendar = () => {
       const text = await response.text();
       console.log('Réponse brute de l\'API:', text);
 
+      let jsonResponse;
       try {
-        const jsonResponse = JSON.parse(text);
+        jsonResponse = JSON.parse(text);
         console.log('Réponse parsée de l\'API:', jsonResponse);
       } catch (e) {
-        console.log('La réponse n\'est pas du JSON valide');
+        console.error('La réponse n\'est pas du JSON valide:', text);
+        throw new Error('Réponse invalide du serveur');
       }
 
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+      if (!response.ok || !jsonResponse.success) {
+        throw new Error(jsonResponse.message || `Erreur HTTP: ${response.status}`);
       }
 
+      // Fermer le modal et recharger les événements
       setShowAddEventModal(false);
       setSelectedDate(null);
       await loadEvents();
 
     } catch (error) {
       console.error('Erreur lors de l\'ajout:', error);
-      setError(error.message);
+      setError(`Erreur lors de l'ajout : ${error.message}`);
     }
   };
 
@@ -2178,12 +2280,12 @@ const ProductionCalendar = () => {
   // Fonction pour modifier un événement
   const handleEditEventSubmit = async (formData) => {
     try {
-      console.log('Données reçues pour la modification:', formData);
+      console.log('Données complètes reçues pour modification:', formData);
 
       const eventData = {
-        id: selectedEvent.id,
-        type: formData.type,
-        date: selectedEvent.date,
+        id: selectedEvent?.id,
+        type: formData.type || 'installation',
+        date: formData.date,
         first_name: formData.firstName,
         last_name: formData.lastName,
         installation_number: formData.installationNumber,
@@ -2195,10 +2297,11 @@ const ProductionCalendar = () => {
         technician2_id: formData.technician2_id || null,
         technician3_id: formData.technician3_id || null,
         technician4_id: formData.technician4_id || null,
-        employee_id: formData.type === 'installation' ? null : formData.employeeId
+        employee_id: formData.type === 'installation' ? null : formData.employee_id,
+        region_id: formData.region_id
       };
 
-      console.log('Données envoyées à l\'API pour modification:', eventData);
+      console.log('Données formatées pour l\'API:', eventData);
 
       const response = await fetch('https://app.vivreenliberte.org/api/events.php', {
         method: 'PUT',
@@ -2209,25 +2312,41 @@ const ProductionCalendar = () => {
         body: JSON.stringify(eventData)
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+
       const text = await response.text();
       console.log('Réponse de l\'API pour la modification:', text);
-
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
 
       setShowEditEventModal(false);
       setSelectedEvent(null);
       await loadEvents();
 
     } catch (error) {
-      console.error('Erreur lors de la modification:', error);
+      console.error('Erreur complète lors de la modification:', error);
       setError(error.message);
     }
   };
 
   return (
     <div>
+      {error && (
+        <div className="error-message" style={{
+          position: 'fixed',
+          top: '70px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#ff5252',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          zIndex: 1000
+        }}>
+          {error}
+        </div>
+      )}
       <TopBar>
         <TopBarTitle>Calendrier de Production</TopBarTitle>
         <TopBarButtons>
@@ -2316,11 +2435,15 @@ const ProductionCalendar = () => {
                                 padding: '8px',
                                 margin: '4px 0',
                                 background: event.type === 'installation' ? '#e3f2fd' : 
-                                           event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                           event.type === 'maladie' ? '#ffebee' : 
+                                           event.type === 'formation' ? '#ffebee' :
+                                           '#e8f5e9',
                                 borderRadius: '4px',
                                 border: '1px solid ' + (
                                   event.type === 'installation' ? '#bbdefb' : 
-                                  event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                                  event.type === 'maladie' ? '#ffcdd2' : 
+                                  event.type === 'formation' ? '#ffcdd2' :
+                                  '#c8e6c9'
                                 )
                               }}
                             >
@@ -2353,7 +2476,11 @@ const ProductionCalendar = () => {
                                 </div>
                               ) : (
                                 <>
-                                  <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                                  <strong>
+                                    {event.type === 'conge' ? 'Congé' : 
+                                     event.type === 'maladie' ? 'Maladie' : 
+                                     'Formation'}
+                                  </strong>
                                   <div>{event.employee_name}</div>
                                 </>
                               )}
@@ -2381,11 +2508,15 @@ const ProductionCalendar = () => {
                               padding: '8px',
                               margin: '4px 0',
                               background: event.type === 'installation' ? '#e3f2fd' : 
-                                         event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                         event.type === 'maladie' ? '#ffebee' : 
+                                         event.type === 'formation' ? '#ffebee' :
+                                         '#e8f5e9',
                               borderRadius: '4px',
                               border: '1px solid ' + (
                                 event.type === 'installation' ? '#bbdefb' : 
-                                event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                                event.type === 'maladie' ? '#ffcdd2' : 
+                                event.type === 'formation' ? '#ffcdd2' :
+                                '#c8e6c9'
                               )
                             }}
                           >
@@ -2418,7 +2549,11 @@ const ProductionCalendar = () => {
                               </div>
                             ) : (
                               <>
-                                <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                                <strong>
+                                  {event.type === 'conge' ? 'Congé' : 
+                                   event.type === 'maladie' ? 'Maladie' : 
+                                   'Formation'}
+                                </strong>
                                 <div>{event.employee_name}</div>
                               </>
                             )}
@@ -2444,11 +2579,15 @@ const ProductionCalendar = () => {
                               padding: '8px',
                               margin: '4px 0',
                               background: event.type === 'installation' ? '#e3f2fd' : 
-                                         event.type === 'maladie' ? '#ffebee' : '#e8f5e9',
+                                         event.type === 'maladie' ? '#ffebee' : 
+                                         event.type === 'formation' ? '#ffebee' :
+                                         '#e8f5e9',
                               borderRadius: '4px',
                               border: '1px solid ' + (
                                 event.type === 'installation' ? '#bbdefb' : 
-                                event.type === 'maladie' ? '#ffcdd2' : '#c8e6c9'
+                                event.type === 'maladie' ? '#ffcdd2' : 
+                                event.type === 'formation' ? '#ffcdd2' :
+                                '#c8e6c9'
                               )
                             }}
                           >
@@ -2477,11 +2616,15 @@ const ProductionCalendar = () => {
                                   ]
                                     .filter(Boolean)
                                     .join(', ') || 'Aucun technicien assigné'}
-                                </div>
+                                  </div>
                               </div>
                             ) : (
                               <>
-                                <strong>{event.type === 'conge' ? 'Congé' : 'Maladie'}</strong>
+                                <strong>
+                                  {event.type === 'conge' ? 'Congé' : 
+                                   event.type === 'maladie' ? 'Maladie' : 
+                                   'Formation'}
+                                </strong>
                                 <div>{event.employee_name}</div>
                               </>
                             )}
@@ -2537,8 +2680,6 @@ const ProductionCalendar = () => {
           employees={employees}
         />
       )}
-
-      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };

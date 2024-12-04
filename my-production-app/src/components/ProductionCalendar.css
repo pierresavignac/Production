@@ -739,6 +739,10 @@ body,
   background-color: #e8f5e9 !important;
 }
 
+.list-view tr.event-row[data-type="formation"] {
+  background-color: #ffebee !important;
+}
+
 /* Supprimer les styles qui forcent le blanc */
 .list-view .day-section table,
 .list-view .day-section tr,

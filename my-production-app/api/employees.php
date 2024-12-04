@@ -1,12 +1,12 @@
 <?php
 require_once 'config.php';
+setCorsHeaders();
 
 // Activer l'affichage des erreurs dans le log
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/debug.log');
-
-// Appliquer les headers CORS standardisés
-setCorsHeaders();
 
 // Gérer les requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -15,41 +15,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
-    // Pagination
-    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-    $limit = isset($_GET['limit']) ? min(50, max(1, intval($_GET['limit']))) : 20;
-    $offset = ($page - 1) * $limit;
-    
-    $stmt = $pdo->prepare("
+    // Vérifier la connexion
+    if (!isset($pdo)) {
+        throw new Exception("La connexion à la base de données n'est pas établie");
+    }
+
+    // Requête pour récupérer uniquement les employés actifs
+    $query = "
         SELECT 
             id,
             first_name,
             last_name,
-            CONCAT(first_name, ' ', last_name) as full_name,
-            role
+            CONCAT(first_name, ' ', last_name) as full_name
         FROM employees
+        WHERE active = 1
         ORDER BY last_name ASC, first_name ASC
-        LIMIT :limit OFFSET :offset
-    ");
+    ";
+
+    error_log("Exécution de la requête: " . $query);
     
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+    $stmt = $pdo->query($query);
+    
+    if (!$stmt) {
+        throw new Exception("Erreur lors de l'exécution de la requête");
+    }
     
     $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Nombre d'employés trouvés: " . count($employees));
     
-    echo json_encode([
-        'success' => true,
-        'data' => $employees,
-        'pagination' => [
-            'page' => $page,
-            'limit' => $limit,
-            'total' => $pdo->query("SELECT COUNT(*) FROM employees")->fetchColumn()
-        ]
-    ], JSON_UNESCAPED_UNICODE);
+    // Renvoyer directement le tableau des employés
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($employees, JSON_UNESCAPED_UNICODE);
 
 } catch(Exception $e) {
     error_log("Erreur dans employees.php : " . $e->getMessage());
+    error_log("Trace : " . $e->getTraceAsString());
+    
     http_response_code(500);
     echo json_encode([
         'success' => false,

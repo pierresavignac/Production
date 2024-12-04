@@ -24,3 +24,13 @@ Options -Indexes
 php_flag display_errors off
 php_value error_reporting E_ALL
 php_value error_log "debug.log"
+
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+Header set Access-Control-Allow-Credentials "true"
+
+# Si le serveur est Apache 2.4+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
