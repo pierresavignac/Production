@@ -1,16 +1,18 @@
 <?php
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 require_once 'config.php';
 setCorsHeaders();
 
-// Log pour le débogage
-error_log("Début de la requête events.php - Méthode: " . $_SERVER['REQUEST_METHOD']);
-
-// Activer l'affichage des erreurs dans le log
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/debug.log');
+// Ajouter la colonne vacation_group_id si elle n'existe pas
+try {
+    $pdo->exec("ALTER TABLE events ADD COLUMN IF NOT EXISTS vacation_group_id VARCHAR(36) DEFAULT NULL");
+    $pdo->exec("ALTER TABLE events ADD COLUMN IF NOT EXISTS vacation_group_start_date DATE DEFAULT NULL");
+    $pdo->exec("ALTER TABLE events ADD COLUMN IF NOT EXISTS vacation_group_end_date DATE DEFAULT NULL");
+} catch(Exception $e) {
+    error_log("Erreur lors de l'ajout des colonnes de groupe de vacances : " . $e->getMessage());
+}
 
 // Gérer les requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -41,10 +43,6 @@ switch ($_SERVER['REQUEST_METHOD']) {
 // Fonction pour gérer les requêtes GET
 function handleGet($pdo) {
     try {
-        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-        $limit = isset($_GET['limit']) ? min(50, max(1, intval($_GET['limit']))) : 20;
-        $offset = ($page - 1) * $limit;
-        
         $stmt = $pdo->prepare("
             SELECT 
                 e.*,
@@ -66,16 +64,11 @@ function handleGet($pdo) {
             LEFT JOIN employees t4 ON e.technician4_id = t4.id
             LEFT JOIN regions r ON e.region_id = r.id
             ORDER BY e.date ASC, e.installation_time ASC
-            LIMIT :limit OFFSET :offset
         ");
         
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
-        
         $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Formater les événements
         $formattedEvents = array_map(function($event) {
             return [
                 'id' => $event['id'] ?? null,
@@ -99,20 +92,16 @@ function handleGet($pdo) {
                 'technician4_name' => $event['technician4_name'] ?? '',
                 'region_name' => $event['region_name'] ?? '',
                 'region_id' => $event['region_id'] ?? null,
-                'employee_id' => $event['employee_id'] ?? null
+                'employee_id' => $event['employee_id'] ?? null,
+                'vacation_group_id' => $event['vacation_group_id'] ?? null,
+                'vacation_group_start_date' => $event['vacation_group_start_date'] ?? null,
+                'vacation_group_end_date' => $event['vacation_group_end_date'] ?? null
             ];
         }, $events);
-
-        error_log("Envoi de la réponse JSON avec " . count($formattedEvents) . " événements");
         
         echo json_encode([
             'success' => true,
-            'data' => $formattedEvents,
-            'pagination' => [
-                'page' => $page,
-                'limit' => $limit,
-                'total' => $pdo->query("SELECT COUNT(*) FROM events")->fetchColumn()
-            ]
+            'data' => $formattedEvents
         ], JSON_UNESCAPED_UNICODE);
 
     } catch(Exception $e) {
@@ -130,18 +119,32 @@ function handleGet($pdo) {
 function handlePost($pdo) {
     try {
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception("Données JSON invalides");
+        }
         error_log("Données POST reçues : " . json_encode($data));
+
+        if (isset($data['type']) && $data['type'] === 'vacances') {
+            $groupId = uniqid('vac_', true);
+            $data['vacation_group_id'] = $groupId;
+            
+            // Utiliser la date de l'événement si startDate/endDate ne sont pas fournis
+            $data['vacation_group_start_date'] = isset($data['startDate']) ? $data['startDate'] : $data['date'];
+            $data['vacation_group_end_date'] = isset($data['endDate']) ? $data['endDate'] : $data['date'];
+        }
 
         $sql = "INSERT INTO events (
             type, date, first_name, last_name, installation_number, 
             installation_time, city, equipment, amount, 
             technician1_id, technician2_id, technician3_id, technician4_id, 
-            employee_id, region_id
+            employee_id, region_id, vacation_group_id,
+            vacation_group_start_date, vacation_group_end_date
         ) VALUES (
             :type, :date, :first_name, :last_name, :installation_number,
             :installation_time, :city, :equipment, :amount,
             :technician1_id, :technician2_id, :technician3_id, :technician4_id,
-            :employee_id, :region_id
+            :employee_id, :region_id, :vacation_group_id,
+            :vacation_group_start_date, :vacation_group_end_date
         )";
 
         $stmt = $pdo->prepare($sql);
@@ -161,10 +164,11 @@ function handlePost($pdo) {
             ':technician3_id' => $data['technician3_id'] ?? null,
             ':technician4_id' => $data['technician4_id'] ?? null,
             ':employee_id' => $data['employee_id'] ?? null,
-            ':region_id' => $data['region_id'] ?? null
+            ':region_id' => $data['region_id'] ?? null,
+            ':vacation_group_id' => $data['vacation_group_id'] ?? null,
+            ':vacation_group_start_date' => $data['vacation_group_start_date'] ?? null,
+            ':vacation_group_end_date' => $data['vacation_group_end_date'] ?? null
         ];
-
-        error_log("Paramètres de la requête : " . json_encode($params));
 
         if (!$stmt->execute($params)) {
             throw new Exception("Erreur lors de l'exécution de la requête");
@@ -174,7 +178,8 @@ function handlePost($pdo) {
         echo json_encode([
             'success' => true,
             'message' => 'Événement ajouté avec succès',
-            'id' => $newId
+            'id' => $newId,
+            'vacation_group_id' => $data['vacation_group_id'] ?? null
         ]);
 
     } catch(Exception $e) {
@@ -197,49 +202,75 @@ function handlePut($pdo) {
             throw new Exception("ID manquant pour la modification");
         }
 
-        $sql = "UPDATE events SET 
-            type = :type,
-            date = :date,
-            first_name = :first_name,
-            last_name = :last_name,
-            installation_number = :installation_number,
-            installation_time = :installation_time,
-            city = :city,
-            equipment = :equipment,
-            amount = :amount,
-            technician1_id = :technician1_id,
-            technician2_id = :technician2_id,
-            technician3_id = :technician3_id,
-            technician4_id = :technician4_id,
-            employee_id = :employee_id,
-            region_id = :region_id
-            WHERE id = :id";
+        if ($data['type'] === 'vacances' && isset($data['updateMode'])) {
+            if ($data['updateMode'] === 'group') {
+                // Mise à jour groupée
+                $sql = "UPDATE events SET 
+                    vacation_group_start_date = :start_date,
+                    vacation_group_end_date = :end_date
+                    WHERE vacation_group_id = :group_id";
+                
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':start_date' => $data['startDate'],
+                    ':end_date' => $data['endDate'],
+                    ':group_id' => $data['vacation_group_id']
+                ]);
+            } else {
+                // Mise à jour individuelle
+                $sql = "UPDATE events SET 
+                    date = :date,
+                    vacation_group_id = NULL,
+                    vacation_group_start_date = NULL,
+                    vacation_group_end_date = NULL
+                    WHERE id = :id";
+                
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':date' => $data['date'],
+                    ':id' => $data['id']
+                ]);
+            }
+        } else {
+            // Mise à jour normale pour les autres types d'événements
+            $sql = "UPDATE events SET 
+                type = :type,
+                date = :date,
+                first_name = :first_name,
+                last_name = :last_name,
+                installation_number = :installation_number,
+                installation_time = :installation_time,
+                city = :city,
+                equipment = :equipment,
+                amount = :amount,
+                technician1_id = :technician1_id,
+                technician2_id = :technician2_id,
+                technician3_id = :technician3_id,
+                technician4_id = :technician4_id,
+                employee_id = :employee_id,
+                region_id = :region_id
+                WHERE id = :id";
 
-        $stmt = $pdo->prepare($sql);
-        
-        $params = [
-            ':id' => $data['id'],
-            ':type' => $data['type'],
-            ':date' => $data['date'],
-            ':first_name' => $data['first_name'] ?? null,
-            ':last_name' => $data['last_name'] ?? null,
-            ':installation_number' => $data['installation_number'] ?? null,
-            ':installation_time' => $data['installation_time'] ?? null,
-            ':city' => $data['city'] ?? null,
-            ':equipment' => $data['equipment'] ?? null,
-            ':amount' => $data['amount'] ?? null,
-            ':technician1_id' => $data['technician1_id'] ?? null,
-            ':technician2_id' => $data['technician2_id'] ?? null,
-            ':technician3_id' => $data['technician3_id'] ?? null,
-            ':technician4_id' => $data['technician4_id'] ?? null,
-            ':employee_id' => $data['employee_id'] ?? null,
-            ':region_id' => $data['region_id'] ?? null
-        ];
-
-        error_log("Paramètres de la requête UPDATE : " . json_encode($params));
-
-        if (!$stmt->execute($params)) {
-            throw new Exception("Erreur lors de la modification");
+            $stmt = $pdo->prepare($sql);
+            $params = [
+                ':id' => $data['id'],
+                ':type' => $data['type'],
+                ':date' => $data['date'],
+                ':first_name' => $data['first_name'] ?? null,
+                ':last_name' => $data['last_name'] ?? null,
+                ':installation_number' => $data['installation_number'] ?? null,
+                ':installation_time' => $data['installation_time'] ?? null,
+                ':city' => $data['city'] ?? null,
+                ':equipment' => $data['equipment'] ?? null,
+                ':amount' => $data['amount'] ?? null,
+                ':technician1_id' => $data['technician1_id'] ?? null,
+                ':technician2_id' => $data['technician2_id'] ?? null,
+                ':technician3_id' => $data['technician3_id'] ?? null,
+                ':technician4_id' => $data['technician4_id'] ?? null,
+                ':employee_id' => $data['employee_id'] ?? null,
+                ':region_id' => $data['region_id'] ?? null
+            ];
+            $stmt->execute($params);
         }
 
         echo json_encode([
@@ -260,19 +291,28 @@ function handlePut($pdo) {
 // Fonction pour gérer les requêtes DELETE
 function handleDelete($pdo) {
     try {
+        $data = json_decode(file_get_contents('php://input'), true);
         $id = isset($_GET['id']) ? $_GET['id'] : null;
+        
         if (!$id) {
             throw new Exception('ID manquant');
         }
 
-        $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
+        if (isset($data['deleteMode']) && $data['deleteMode'] === 'group') {
+            // Suppression groupée
+            $stmt = $pdo->prepare("DELETE FROM events WHERE vacation_group_id = (SELECT vacation_group_id FROM events WHERE id = ?)");
+        } else {
+            // Suppression individuelle
+            $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
+        }
+
         if (!$stmt->execute([$id])) {
             throw new Exception('Erreur lors de la suppression');
         }
 
         echo json_encode([
             'success' => true,
-            'message' => 'Événement supprimé avec succès'
+            'message' => 'Événement(s) supprimé(s) avec succès'
         ]);
 
     } catch(Exception $e) {

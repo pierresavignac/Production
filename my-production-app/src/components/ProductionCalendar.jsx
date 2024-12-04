@@ -1,19 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addWeeks, subWeeks } from 'date-fns';
-
-// Import des composants
+import { addWeeks, subWeeks, addDays, isWeekend, parseISO, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { createEvent, fetchEvents, updateEvent, deleteEvent, fetchEmployees } from '../utils/apiUtils';
+import { getEventsForDay, sortEventsByTime } from '../utils/eventUtils';
+import { calculateWeeks, isCurrentDay, isCurrentWeek, formatDayHeader, formatDateForAPI } from '../utils/dateUtils';
 import AddEventModal from './modals/AddEventModal';
 import EditEventModal from './modals/EditEventModal';
 import EventDetailsModal from './modals/EventDetailsModal';
-import ListView from './views/ListView';
 import BlockView from './views/BlockView';
-
-// Import des utilitaires
-import { calculateWeeks, isCurrentDay, isCurrentWeek, formatDayHeader, formatDateForAPI } from '../utils/dateUtils';
-import { getEventsForDay } from '../utils/eventUtils';
-import { fetchEvents, fetchEmployees, createEvent, updateEvent, deleteEvent } from '../utils/apiUtils';
-
-// Import des styles
+import ListView from './views/ListView';
 import '../styles/ProductionCalendar.css';
 
 const ProductionCalendar = () => {
@@ -111,35 +106,79 @@ const ProductionCalendar = () => {
   };
 
   const handleEventClick = (event) => {
-    setSelectedEvent(event);
-    setShowEventDetailsModal(true);
+    if (!event) return;
+    
+    try {
+      setSelectedEvent(event);
+      setShowEventDetailsModal(true);
+    } catch (error) {
+      console.error('Erreur lors de l\'ouverture des détails:', error);
+      setError('Erreur lors de l\'ouverture des détails de l\'événement');
+    }
   };
 
   const handleAddEventSubmit = async (formData) => {
     try {
-      const eventData = {
-        type: formData.type,
-        date: formatDateForAPI(selectedDate),
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        installation_number: formData.installationNumber,
-        installation_time: formData.installationTime,
-        city: formData.city,
-        equipment: formData.equipment,
-        amount: formData.amount,
-        technician1_id: formData.technician1_id || null,
-        technician2_id: formData.technician2_id || null,
-        technician3_id: formData.technician3_id || null,
-        technician4_id: formData.technician4_id || null,
-        employee_id: formData.type === 'installation' ? null : formData.employee_id,
-        region_id: formData.region_id || null
-      };
+      console.log('Type d\'événement reçu:', formData.type); // Debug
 
-      await createEvent(eventData);
+      if (formData.type === 'vacances') {
+        console.log('Création d\'événements vacances'); // Debug
+        const startDate = parseISO(formData.startDate);
+        const endDate = parseISO(formData.endDate);
+        let currentDate = startDate;
+        
+        while (currentDate <= endDate) {
+          if (!isWeekend(currentDate)) {
+            const eventData = {
+              type: 'vacances',
+              date: format(currentDate, 'yyyy-MM-dd'),
+              employee_id: formData.employee_id,
+              first_name: '',
+              last_name: '',
+              installation_number: '',
+              installation_time: '',
+              city: '',
+              equipment: '',
+              amount: '',
+              technician1_id: null,
+              technician2_id: null,
+              technician3_id: null,
+              technician4_id: null,
+              region_id: null
+            };
+            console.log('Création événement vacances:', eventData); // Debug
+            const response = await createEvent(eventData);
+            console.log('Réponse création vacances:', response); // Debug
+          }
+          currentDate = addDays(currentDate, 1);
+        }
+      } else {
+        const eventData = {
+          type: formData.type,
+          date: formatDateForAPI(selectedDate),
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          installation_number: formData.installationNumber,
+          installation_time: formData.installationTime,
+          city: formData.city,
+          equipment: formData.equipment,
+          amount: formData.amount,
+          technician1_id: formData.technician1_id || null,
+          technician2_id: formData.technician2_id || null,
+          technician3_id: formData.technician3_id || null,
+          technician4_id: formData.technician4_id || null,
+          employee_id: formData.type === 'installation' ? null : formData.employee_id,
+          region_id: formData.region_id || null
+        };
+
+        await createEvent(eventData);
+      }
+
       setShowAddEventModal(false);
       setSelectedDate(null);
       
       const eventsData = await fetchEvents();
+      console.log('Événements après création:', eventsData); // Debug
       const groupedEvents = eventsData.reduce((acc, event) => {
         if (!acc[event.date]) {
           acc[event.date] = [];
@@ -218,6 +257,15 @@ const ProductionCalendar = () => {
     }
   };
 
+  // Dans le style des blocs de journée, ajoutez une propriété boxShadow
+  const dayBlockStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    minHeight: '100px',
+    backgroundColor: '#fff',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' // Ombrage plus prononcé
+  };
+
   // Rendu
   return (
     <div>
@@ -262,7 +310,11 @@ const ProductionCalendar = () => {
         </div>
       )}
 
-      <div className="calendar-container" ref={scrollRef}>
+      <div className="calendar-container" ref={scrollRef} style={{ 
+        backgroundColor: '#ff6b00',
+        padding: '1rem',
+        minHeight: '100vh'
+      }}>
         {viewMode === 'calendar' ? (
           <BlockView
             weeks={weeks}
@@ -301,26 +353,32 @@ const ProductionCalendar = () => {
 
       {showEventDetailsModal && selectedEvent && (
         <EventDetailsModal
-          event={selectedEvent}
-          onClose={() => {
+          show={showEventDetailsModal}
+          onHide={() => {
             setShowEventDetailsModal(false);
             setSelectedEvent(null);
           }}
+          event={selectedEvent}
           onEdit={(event) => {
+            setSelectedEvent(event);
             setShowEventDetailsModal(false);
             setShowEditEventModal(true);
           }}
-          onDelete={handleDeleteEvent}
+          onDelete={(event) => {
+            handleDeleteEvent(event.id);
+            setShowEventDetailsModal(false);
+          }}
         />
       )}
 
       {showEditEventModal && selectedEvent && (
         <EditEventModal
-          event={selectedEvent}
-          onClose={() => {
+          show={showEditEventModal}
+          onHide={() => {
             setShowEditEventModal(false);
             setSelectedEvent(null);
           }}
+          event={selectedEvent}
           onSubmit={handleEditEventSubmit}
           employees={employees}
         />

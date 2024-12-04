@@ -1,133 +1,221 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import '../../styles/Modal.css';
+import VacationActionModal from './VacationActionModal';
 
-const EventDetailsModal = ({ event, onClose, onEdit, onDelete }) => {
-  const handleEdit = () => {
-    onEdit(event);
-  };
+const EventDetailsModal = ({ show, onHide, event, onEdit, onDelete }) => {
+    const [showVacationModal, setShowVacationModal] = useState(false);
+    const [vacationModalMode, setVacationModalMode] = useState('edit');
 
-  const handleDelete = () => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
-      onDelete(event.id);
+    if (!event) {
+        return null;
     }
-  };
 
-  const getEventTitle = () => {
-    switch (event.type) {
-      case 'installation':
-        return 'Détails de l\'installation';
-      case 'conge':
-        return 'Détails du congé';
-      case 'maladie':
-        return 'Détails de l\'arrêt maladie';
-      case 'formation':
-        return 'Détails de la formation';
-      default:
-        return 'Détails de l\'événement';
-    }
-  };
+    const getEventTypeLabel = (type) => {
+        switch (type) {
+            case 'installation':
+                return 'Installation';
+            case 'conge':
+                return 'Congé';
+            case 'maladie':
+                return 'Maladie';
+            case 'formation':
+                return 'Formation';
+            case 'vacances':
+                return 'Vacances';
+            default:
+                return type;
+        }
+    };
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>{getEventTitle()}</h2>
-          <button onClick={onClose} className="close-button">&times;</button>
-        </div>
-        <div className="modal-body">
-          <div className="details-grid">
-            <div className="detail-item">
-              <label>Type :</label>
-              <span>
-                {event.type === 'conge' ? 'Congé' 
-                  : event.type === 'maladie' ? 'Maladie'
-                  : event.type === 'formation' ? 'Formation'
-                  : 'Installation'}
-              </span>
-            </div>
+    const handleVacationAction = (data) => {
+        if (data.mode === 'edit') {
+            onEdit({ ...event, updateMode: 'group', startDate: data.startDate, endDate: data.endDate });
+        } else {
+            onDelete({ ...event, deleteMode: 'group' });
+        }
+        setShowVacationModal(false);
+    };
 
-            <div className="detail-item">
-              <label>Date :</label>
-              <span>{event.date}</span>
-            </div>
+    const renderEventDetails = () => {
+        if (!event.type) return null;
 
-            {event.type === 'installation' ? (
-              <>
-                <div className="detail-item">
-                  <label>Numéro d'installation :</label>
-                  <span>{event.installation_number}</span>
-                </div>
+        switch (event.type) {
+            case 'installation':
+                return (
+                    <div className="details-grid">
+                        <div className="detail-item">
+                            <label>Type :</label>
+                            <span>{getEventTypeLabel(event.type)}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Date :</label>
+                            <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Heure :</label>
+                            <span>{event.installation_time}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Prénom :</label>
+                            <span>{event.first_name}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Nom :</label>
+                            <span>{event.last_name}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Numéro d'installation :</label>
+                            <span>{event.installation_number}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Ville :</label>
+                            <span>{event.city}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Équipement :</label>
+                            <span>{event.equipment}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Montant :</label>
+                            <span>{event.amount}€</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Région :</label>
+                            <span>{event.region_name}</span>
+                        </div>
+                        {event.technician1_name && (
+                            <div className="detail-item">
+                                <label>Technicien 1 :</label>
+                                <span>{event.technician1_name}</span>
+                            </div>
+                        )}
+                        {event.technician2_name && (
+                            <div className="detail-item">
+                                <label>Technicien 2 :</label>
+                                <span>{event.technician2_name}</span>
+                            </div>
+                        )}
+                        {event.technician3_name && (
+                            <div className="detail-item">
+                                <label>Technicien 3 :</label>
+                                <span>{event.technician3_name}</span>
+                            </div>
+                        )}
+                        {event.technician4_name && (
+                            <div className="detail-item">
+                                <label>Technicien 4 :</label>
+                                <span>{event.technician4_name}</span>
+                            </div>
+                        )}
+                    </div>
+                );
+            case 'formation':
+            case 'maladie':
+            case 'conge':
+                return (
+                    <div className="details-grid">
+                        <div className="detail-item">
+                            <label>Type :</label>
+                            <span>{getEventTypeLabel(event.type)}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Date :</label>
+                            <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Commercial :</label>
+                            <span>{event.employee_name}</span>
+                        </div>
+                    </div>
+                );
+            case 'vacances':
+                return (
+                    <div className="details-grid">
+                        <div className="detail-item">
+                            <label>Type :</label>
+                            <span>{getEventTypeLabel(event.type)}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Date :</label>
+                            <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="detail-item">
+                            <label>Commercial :</label>
+                            <span>{event.employee_name}</span>
+                        </div>
+                        {event.vacation_group_id && (
+                            <>
+                                <div className="detail-item">
+                                    <label>Période de vacances :</label>
+                                    <span>
+                                        Du {new Date(event.vacation_group_start_date).toLocaleDateString()} au {new Date(event.vacation_group_end_date).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
-                <div className="detail-item">
-                  <label>Heure :</label>
-                  <span>{event.installation_time}</span>
-                </div>
+    return (
+        <>
+            <Modal show={show} onHide={onHide} centered className="custom-modal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Détails de l'événement</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {renderEventDetails()}
+                </Modal.Body>
+                <Modal.Footer>
+                    {event.type === 'vacances' && event.vacation_group_id && (
+                        <>
+                            <Button 
+                                variant="warning" 
+                                onClick={() => {
+                                    setVacationModalMode('edit');
+                                    setShowVacationModal(true);
+                                }}
+                            >
+                                Modifier le groupe
+                            </Button>
+                            <Button 
+                                variant="danger" 
+                                onClick={() => {
+                                    setVacationModalMode('delete');
+                                    setShowVacationModal(true);
+                                }}
+                            >
+                                Supprimer le groupe
+                            </Button>
+                        </>
+                    )}
+                    <Button variant="primary" onClick={() => onEdit(event)}>
+                        Modifier
+                    </Button>
+                    <Button variant="danger" onClick={() => onDelete(event)}>
+                        Supprimer
+                    </Button>
+                    <Button variant="secondary" onClick={onHide}>
+                        Fermer
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
-                <div className="detail-item">
-                  <label>Client :</label>
-                  <span>{event.first_name} {event.last_name}</span>
-                </div>
-
-                <div className="detail-item">
-                  <label>Ville :</label>
-                  <span>{event.city}</span>
-                </div>
-
-                <div className="detail-item">
-                  <label>Équipement :</label>
-                  <span>{event.equipment}</span>
-                </div>
-
-                <div className="detail-item">
-                  <label>Montant :</label>
-                  <span>${event.amount}</span>
-                </div>
-
-                <div className="detail-item">
-                  <label>Technicien principal :</label>
-                  <span>{event.technician1_name}</span>
-                </div>
-
-                {event.technician2_name && (
-                  <div className="detail-item">
-                    <label>Technicien supplémentaire 1 :</label>
-                    <span>{event.technician2_name}</span>
-                  </div>
-                )}
-
-                {event.technician3_name && (
-                  <div className="detail-item">
-                    <label>Technicien supplémentaire 2 :</label>
-                    <span>{event.technician3_name}</span>
-                  </div>
-                )}
-
-                {event.technician4_name && (
-                  <div className="detail-item">
-                    <label>Technicien supplémentaire 3 :</label>
-                    <span>{event.technician4_name}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="detail-item">
-                <label>Employé :</label>
-                <span>{event.employee_name}</span>
-              </div>
+            {showVacationModal && (
+                <VacationActionModal
+                    show={showVacationModal}
+                    onHide={() => setShowVacationModal(false)}
+                    onConfirm={handleVacationAction}
+                    event={event}
+                    mode={vacationModalMode}
+                />
             )}
-          </div>
-        </div>
-        <div className="button-group">
-          <button onClick={handleEdit} className="edit-button">
-            Modifier
-          </button>
-          <button onClick={handleDelete} className="delete-button">
-            Supprimer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+        </>
+    );
 };
 
 export default EventDetailsModal; 

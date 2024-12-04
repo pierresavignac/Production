@@ -38,6 +38,12 @@ export const getEventTypeColor = (type) => {
         background: '#fff3e0',
         border: '#ffe0b2'
       };
+    case 'vacances':
+      return {
+        background: '#ffd700',
+        border: '#daa520',
+        color: '#000000'
+      };
     default:
       return {
         background: '#f5f5f5',
@@ -56,6 +62,8 @@ export const getEventTypeLabel = (type) => {
       return 'Maladie';
     case 'formation':
       return 'Formation';
+    case 'vacances':
+      return 'Vacances';
     default:
       return type;
   }

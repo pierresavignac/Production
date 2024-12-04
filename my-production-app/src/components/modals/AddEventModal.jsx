@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchTechnicians } from '../../utils/apiUtils';
 import '../../styles/Modal.css';
 
 const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
@@ -16,14 +17,28 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
     technician2_id: '',
     technician3_id: '',
     technician4_id: '',
-    employee_id: ''
+    employee_id: '',
+    startDate: selectedDate,
+    endDate: selectedDate
   });
 
+  const [technicians, setTechnicians] = useState([]);
   const [regions, setRegions] = useState([]);
   const [cities, setCities] = useState([]);
   const [equipment, setEquipment] = useState([]);
-  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
+
+  useEffect(() => {
+    const loadTechnicians = async () => {
+      try {
+        const techniciansList = await fetchTechnicians();
+        setTechnicians(techniciansList);
+      } catch (error) {
+        console.error('Erreur lors du chargement des techniciens:', error);
+      }
+    };
+
+    loadTechnicians();
+  }, []);
 
   // Charger les équipements
   useEffect(() => {
@@ -62,6 +77,7 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log('Changement de champ:', name, value); // Debug
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -101,7 +117,22 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    console.log('Données du formulaire avant soumission:', formData); // Debug
+    
+    const submissionData = {
+      ...formData
+    };
+
+    if (formData.type === 'vacances') {
+      console.log('Préparation des données de vacances'); // Debug
+      submissionData.type = 'vacances';  // Forcer explicitement le type
+      submissionData.employee_id = formData.employee_id;
+      submissionData.startDate = formData.startDate;
+      submissionData.endDate = formData.endDate;
+    }
+
+    console.log('Données soumises:', submissionData); // Debug
+    onSubmit(submissionData);
   };
 
   return (
@@ -125,8 +156,53 @@ const AddEventModal = ({ onClose, onSubmit, selectedDate, employees }) => {
               <option value="conge">Congé</option>
               <option value="maladie">Maladie</option>
               <option value="formation">Formation</option>
+              <option value="vacances">Vacances</option>
             </select>
           </div>
+
+          {formData.type === 'vacances' && (
+            <>
+              <div className="form-group">
+                <label>Technicien</label>
+                <select
+                  name="employee_id"
+                  value={formData.employee_id}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Sélectionnez un technicien</option>
+                  {technicians.map(technician => (
+                    <option key={technician.id} value={technician.id}>
+                      {`${technician.first_name} ${technician.last_name}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label>Date de début</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Date de fin</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    min={formData.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           {formData.type === 'installation' ? (
             <>

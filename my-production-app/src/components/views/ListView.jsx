@@ -4,14 +4,33 @@ import { fr } from 'date-fns/locale';
 import styled from 'styled-components';
 
 const WeekSection = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 
   &[data-is-current="true"] {
-    border: 2px solid #4CAF50;
+    background: #1976d2;
+    color: white;
+    
+    .week-header {
+      background: white;
+      color: black;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .day-section {
+      background: white;
+      color: black;
+      margin: 0.5rem;
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+
+      &[data-is-current="true"] {
+        background: #ff8f00;
+      }
+    }
   }
 `;
 
@@ -28,6 +47,21 @@ const AddInlineButton = styled.button`
   &:hover {
     background: #45a049;
   }
+`;
+
+const DayHeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+`;
+
+const DayTitle = styled.h3`
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
 `;
 
 const ListView = ({ 
@@ -90,14 +124,12 @@ const ListView = ({
                   className="day-section"
                   data-is-current={isCurrentDay(currentDate)}
                 >
-                  <div className="day-header-container">
-                    <div className="date-group">
-                      <h3 className="day-header">
-                        {format(currentDate, 'EEEE dd MMMM', { locale: fr })}
-                        <AddInlineButton onClick={() => handleDateClick(currentDate)}>+</AddInlineButton>
-                      </h3>
-                    </div>
-                  </div>
+                  <DayHeaderContainer>
+                    <DayTitle>
+                      {format(currentDate, 'EEEE dd MMMM', { locale: fr })}
+                      <AddInlineButton onClick={() => handleDateClick(currentDate)}>+</AddInlineButton>
+                    </DayTitle>
+                  </DayHeaderContainer>
                   
                   {dayEvents.length > 0 && (
                     <table>
@@ -119,6 +151,7 @@ const ListView = ({
                               {event.type === 'conge' ? 'Congé' 
                                 : event.type === 'maladie' ? 'Maladie' 
                                 : event.type === 'formation' ? 'Formation'
+                                : event.type === 'vacances' ? 'Vacances'
                                 : 'Installation'}
                             </td>
                             <td>
@@ -142,14 +175,12 @@ const ListView = ({
                 className="day-section"
                 data-is-current={isCurrentDay(saturday)}
               >
-                <div className="day-header-container">
-                  <div className="date-group">
-                    <h3 className="day-header">
-                      {format(saturday, 'EEEE dd MMMM', { locale: fr })}
-                      <AddInlineButton onClick={() => handleDateClick(saturday)}>+</AddInlineButton>
-                    </h3>
-                  </div>
-                </div>
+                <DayHeaderContainer>
+                  <DayTitle>
+                    {format(saturday, 'EEEE dd MMMM', { locale: fr })}
+                    <AddInlineButton onClick={() => handleDateClick(saturday)}>+</AddInlineButton>
+                  </DayTitle>
+                </DayHeaderContainer>
                 <table>
                   <thead>
                     <tr>
@@ -169,6 +200,7 @@ const ListView = ({
                           {event.type === 'conge' ? 'Congé' 
                             : event.type === 'maladie' ? 'Maladie' 
                             : event.type === 'formation' ? 'Formation'
+                            : event.type === 'vacances' ? 'Vacances'
                             : 'Installation'}
                         </td>
                         <td>
@@ -190,14 +222,12 @@ const ListView = ({
                 className="day-section"
                 data-is-current={isCurrentDay(sunday)}
               >
-                <div className="day-header-container">
-                  <div className="date-group">
-                    <h3 className="day-header">
-                      {format(sunday, 'EEEE dd MMMM', { locale: fr })}
-                      <AddInlineButton onClick={() => handleDateClick(sunday)}>+</AddInlineButton>
-                    </h3>
-                  </div>
-                </div>
+                <DayHeaderContainer>
+                  <DayTitle>
+                    {format(sunday, 'EEEE dd MMMM', { locale: fr })}
+                    <AddInlineButton onClick={() => handleDateClick(sunday)}>+</AddInlineButton>
+                  </DayTitle>
+                </DayHeaderContainer>
                 <table>
                   <thead>
                     <tr>
@@ -217,6 +247,7 @@ const ListView = ({
                           {event.type === 'conge' ? 'Congé' 
                             : event.type === 'maladie' ? 'Maladie' 
                             : event.type === 'formation' ? 'Formation'
+                            : event.type === 'vacances' ? 'Vacances'
                             : 'Installation'}
                         </td>
                         <td>
