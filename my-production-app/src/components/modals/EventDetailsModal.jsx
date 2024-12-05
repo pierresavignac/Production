@@ -44,58 +44,70 @@ const EventDetailsModal = ({ show, onHide, event, onEdit, onDelete }) => {
             case 'installation':
                 return (
                     <div className="details-grid">
-                        <div className="detail-item">
-                            <label>Type :</label>
-                            <span>{getEventTypeLabel(event.type)}</span>
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Type :</label>
+                                <span>{getEventTypeLabel(event.type)}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Numéro d'installation :</label>
+                                <span>{event.installation_number}</span>
+                            </div>
                         </div>
-                        <div className="detail-item">
-                            <label>Date :</label>
-                            <span>{new Date(event.date).toLocaleDateString()}</span>
+
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Date :</label>
+                                <span>{new Date(event.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Heure :</label>
+                                <span>{event.installation_time}</span>
+                            </div>
                         </div>
-                        <div className="detail-item">
-                            <label>Heure :</label>
-                            <span>{event.installation_time}</span>
+
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Région :</label>
+                                <span>{event.region_name}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Ville :</label>
+                                <span>{event.city}</span>
+                            </div>
                         </div>
-                        <div className="detail-item">
-                            <label>Prénom :</label>
-                            <span>{event.first_name}</span>
+
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Équipement :</label>
+                                <span>{event.equipment}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Montant :</label>
+                                <span>{new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(event.amount)}</span>
+                            </div>
                         </div>
-                        <div className="detail-item">
-                            <label>Nom :</label>
-                            <span>{event.last_name}</span>
+
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Technicien 1 :</label>
+                                <span>{event.technician1_name || '-'}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Technicien 2 :</label>
+                                <span>{event.technician2_name || '-'}</span>
+                            </div>
                         </div>
-                        <div className="detail-item">
-                            <label>Numéro d'installation :</label>
-                            <span>{event.installation_number}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Ville :</label>
-                            <span>{event.city}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Techniciens :</label>
-                            <span>
-                                {[
-                                    event.technician1_name,
-                                    event.technician2_name,
-                                    event.technician3_name,
-                                    event.technician4_name
-                                ]
-                                    .filter(tech => tech)
-                                    .join(', ')}
-                            </span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Équipement :</label>
-                            <span>{event.equipment}</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Montant :</label>
-                            <span>{event.amount}€</span>
-                        </div>
-                        <div className="detail-item">
-                            <label>Région :</label>
-                            <span>{event.region || event.region_name}</span>
+
+                        <div className="detail-row">
+                            <div className="detail-item">
+                                <label>Technicien 3 :</label>
+                                <span>{event.technician3_name || '-'}</span>
+                            </div>
+                            <div className="detail-item">
+                                <label>Technicien 4 :</label>
+                                <span>{event.technician4_name || '-'}</span>
+                            </div>
                         </div>
                     </div>
                 );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addWeeks, subWeeks, addDays, isWeekend, parseISO, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { createEvent, fetchEvents, updateEvent, deleteEvent, fetchEmployees } from '../utils/apiUtils';
+import { fetchEvents, createEvent, updateEvent, deleteEvent, fetchEmployees } from '../utils/apiUtils';
 import { getEventsForDay, sortEventsByTime } from '../utils/eventUtils';
 import { calculateWeeks, isCurrentDay, isCurrentWeek, formatDayHeader, formatDateForAPI } from '../utils/dateUtils';
 import AddEventModal from './modals/AddEventModal';
@@ -137,7 +137,8 @@ const ProductionCalendar = () => {
                 technician1_id: formData.technician1,
                 technician2_id: formData.technician2,
                 technician3_id: formData.technician3,
-                technician4_id: formData.technician4
+                technician4_id: formData.technician4,
+                employee_id: formData.employee_id
             };
 
             console.log('Mise à jour de l\'événement:', eventData);
@@ -259,6 +260,22 @@ const ProductionCalendar = () => {
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' // Ombrage plus prononcé
   };
 
+  // Ajouter la fonction pour charger les employés
+  const loadEmployees = async () => {
+    try {
+      const data = await fetchEmployees();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des employés:', error);
+      setError('Erreur lors du chargement des employés');
+    }
+  };
+
+  // Charger les employés au montage du composant
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
   // Rendu
   return (
     <div>
@@ -332,18 +349,6 @@ const ProductionCalendar = () => {
         )}
       </div>
 
-      {showAddEventModal && (
-        <AddEventModal
-          onClose={() => {
-            setShowAddEventModal(false);
-            setSelectedDate(null);
-          }}
-          onSubmit={handleAddEventSubmit}
-          selectedDate={selectedDate}
-          employees={employees}
-        />
-      )}
-
       {showEventDetailsModal && selectedEvent && (
         <EventDetailsModal
           show={showEventDetailsModal}
@@ -374,6 +379,19 @@ const ProductionCalendar = () => {
           onSubmit={handleAddEventSubmit}
           event={selectedEvent}
           mode="edit"
+          employees={employees}
+        />
+      )}
+
+      {showAddEventModal && (
+        <AddEventModal
+          show={showAddEventModal}
+          onHide={() => {
+            setShowAddEventModal(false);
+            setSelectedDate(null);
+          }}
+          onSubmit={handleAddEventSubmit}
+          mode="add"
           employees={employees}
         />
       )}
