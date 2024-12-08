@@ -123,7 +123,7 @@ const ProductionCalendar = () => {
         if (formData.mode === 'edit') {
             // Cas de la modification
             const eventData = {
-                id: selectedEvent.id,
+                id: formData.id,
                 type: formData.type,
                 date: formData.date,
                 installation_time: formData.installation_time,
@@ -133,11 +133,11 @@ const ProductionCalendar = () => {
                 city: formData.city,
                 equipment: formData.equipment,
                 amount: formData.amount,
-                region_id: formData.region,
-                technician1_id: formData.technician1,
-                technician2_id: formData.technician2,
-                technician3_id: formData.technician3,
-                technician4_id: formData.technician4,
+                region: formData.region,
+                technician1: formData.technician1,
+                technician2: formData.technician2,
+                technician3: formData.technician3,
+                technician4: formData.technician4,
                 employee_id: formData.employee_id
             };
 

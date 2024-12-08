@@ -1,0 +1,23 @@
+{
+    "name": "my-production-app/api",
+    "description": "API Backend pour My Production App",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-soap": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": ".",
+            "ProgressionWebService\\": "progression/ProgressionWebServiceV2/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+} 

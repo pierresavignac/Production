@@ -1,0 +1,185 @@
+1. STRUCTURE DE LA BASE DE DONNÉES
+------------------------------
+
+a) Table principale (installations) :
+   ```sql
+   -- Structure initiale
+   CREATE TABLE IF NOT EXISTS installations (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       installation_number VARCHAR(10) NOT NULL UNIQUE,  -- Format: INS0XXXXX
+       first_name VARCHAR(100),                         -- Stocke le nom complet du client
+       phone VARCHAR(20),
+       address VARCHAR(255),
+       city VARCHAR(100),
+       summary TEXT,
+       description TEXT,
+       amount DECIMAL(10,2),                           -- Montant incluant déjà les taxes
+       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+   );
+
+   -- Migration vers la nouvelle structure
+   ALTER TABLE installations
+   ADD COLUMN progression_task_id VARCHAR(50) AFTER amount,
+   CHANGE COLUMN first_name full_name VARCHAR(100);
+   ```
+
+b) Notes sur la migration :
+   - Le champ `first_name` est renommé en `full_name` pour plus de clarté
+   - Le champ `amount` contient déjà le montant avec taxes
+   - Ajout de `progression_task_id` pour le lien avec ProgressionLive
+   - Le nom du client est déjà stocké en un seul champ dans ProgressionLive
+
+2. INTÉGRATION PROGRESSIONLIVE
+---------------------------
+
+a) Politique d'accès :
+   - LECTURE SEULE : L'application ne fait que lire les données de ProgressionLive
+   - AUCUNE MODIFICATION : Aucune donnée n'est envoyée vers ProgressionLive
+   - Les modifications sont sauvegardées uniquement dans notre base de données locale
+
+b) Champs importés de l'API ProgressionLive (lecture seule) :
+   ```javascript
+   {
+     // Informations client
+     customer: {
+       name: string,         // → full_name (Nom complet)
+       phoneNumber: string,  // → phone
+       address: {
+         street: string,     // → address
+         city: string,      // → city
+       }
+     },
+     // Informations tâche
+     task: {
+       id: string,          // → progression_task_id
+       title: string,       // → summary
+       description: string, // → description
+       priceWithTaxes: number,  // → amount (Montant incluant déjà les taxes)
+     }
+   }
+   ```
+
+c) Processus d'importation :
+   1. L'utilisateur entre le numéro d'installation (INS0XXXXX)
+   2. L'utilisateur clique sur le bouton "Fetch"
+   3. Le système fait une requête GET vers l'API ProgressionLive
+   4. Les données sont importées en lecture seule dans le formulaire
+   5. Les modifications sont sauvegardées uniquement dans notre base de données
+
+3. COMPOSANTS MODAUX
+------------------
+
+a) Fichiers concernés :
+   - AddEventModal.jsx : Ajout d'installation (lecture seule depuis ProgressionLive)
+   - EventDetailsModal.jsx : Modification d'installation (lecture seule depuis ProgressionLive)
+   - WorksheetModal.jsx : Feuille de travail (lecture seule depuis ProgressionLive)
+
+b) Structure commune des champs :
+   - En-tête : 
+     * Numéro d'installation (INS0) avec bouton "Fetch"
+     * Date (éditable)
+     * Heure (éditable)
+   - Informations client (lecture seule depuis ProgressionLive) :
+     * Nom complet (8/12)
+     * Téléphone (4/12)
+     * Adresse (8/12)
+     * Ville (4/12)
+   - Description (lecture seule depuis ProgressionLive) :
+     * Sommaire
+     * Description (5 lignes)
+   - Détails :
+     * Équipement (éditable localement)
+     * Montant à percevoir avec taxes (lecture seule depuis ProgressionLive)
+
+4. POINTS D'API
+-------------
+
+a) Endpoints locaux (lecture/écriture) :
+   - GET /api/installations.php : Liste des installations
+   - POST /api/installations.php : Création/Modification
+   - GET /api/installations/{id}.php : Détails d'une installation
+
+b) Endpoints ProgressionLive (lecture seule) :
+   - POST {API_BASE_URL}/progression/tasks.php : Recherche de tâches par code
+     * Corps de la requête : { "task_code": "INS000000" }
+     * Headers requis :
+       - Content-Type: application/json
+       - Accept: application/json
+     * Exemple de requête :
+       ```javascript
+       fetch(url, {
+         method: 'POST',
+         headers: {
+           'Accept': 'application/json',
+           'Content-Type': 'application/json'
+         },
+         body: JSON.stringify({
+           task_code: 'INS001234'
+         })
+       });
+       ```
+   - GET {API_BASE_URL}/progression/task/{id}.php : Détails d'une tâche
+
+c) Format des codes de tâche :
+   - Format interne : INS0XXXXX (où XXXXX est le numéro)
+   - Format Progression : INS000000 (où les 0 sont remplacés par le numéro avec padding)
+   - Exemples :
+     * INS01234 (interne) → INS001234 (Progression)
+     * INS0999 (interne) → INS000999 (Progression)
+     * INS012345 (interne) → INS012345 (Progression)
+
+d) Format des requêtes et réponses :
+   ```javascript
+   // Requête
+   {
+     "task_code": "INS000000"  // Code de tâche formaté
+   }
+
+   // Réponse en cas de succès
+   {
+     success: true,
+     customer: {
+       name: string,
+       phoneNumber: string,
+       address: {
+         street: string,
+         city: string
+       }
+     },
+     task: {
+       id: string,
+       title: string,
+       description: string,
+       priceWithTaxes: number
+     }
+   }
+
+   // Réponse en cas d'erreur
+   {
+     success: false,
+     error: string
+   }
+   ```
+
+e) Codes d'erreur possibles :
+   - 400 Bad Request : Code de tâche manquant ou invalide
+   - 404 Not Found : Tâche non trouvée
+   - 500 Internal Server Error : Erreur serveur
+
+f) Logs de débogage :
+   ```javascript
+   // Console logs pour le débogage
+   console.log('Recherche de la tâche avec le numéro:', cleanNumber);
+   console.log('URL de l\'appel API:', url);
+   console.log('Données reçues de l\'API:', data);
+   console.log('Données formatées:', formattedData);
+   
+   // En cas d'erreur
+   console.error('Réponse du serveur:', {
+     status: response.status,
+     statusText: response.statusText,
+     body: errorText,
+     headers: headers
+   });
+   ```

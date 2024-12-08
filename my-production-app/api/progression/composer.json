@@ -1,0 +1,32 @@
+{
+    "name": "my-production-app/progression-service",
+    "description": "Service d'intégration avec Progression Live pour la recherche de tâches",
+    "type": "library",
+    "require": {
+        "php": ">=7.4",
+        "ext-soap": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "ProgressionWebService\\": "ProgressionWebServiceV2/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Pierre Savignac",
+            "email": "pierre@garychartrand.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "version": "1.0.0",
+    "extra": {
+        "progression-config": {
+            "company_domain": "garychartrand",
+            "api_version": "v2",
+            "endpoints": {
+                "search_task": "tasks.php"
+            }
+        }
+    }
+} 

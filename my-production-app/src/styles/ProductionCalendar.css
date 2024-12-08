@@ -6,6 +6,7 @@ body {
   padding: 8px;
   max-height: calc(100vh - 60px);
   overflow-y: auto;
+  background-color: #FF6B00;
 }
 
 .app-title {
@@ -16,11 +17,8 @@ body {
 }
 
 .week-section {
-  margin-bottom: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  margin-bottom: 8px;
+  background: transparent;
   border: none;
 }
 
@@ -225,7 +223,7 @@ th {
 .block-view {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  background: transparent;
 }
 
 .week-container {
@@ -234,6 +232,10 @@ th {
   gap: 0.5rem;
   padding: 0.5rem;
   align-items: start;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  margin-bottom: -6px;
 }
 
 .weekend-container {
@@ -241,7 +243,20 @@ th {
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   padding: 0.5rem;
-  margin-top: 0.5rem;
+  background: white;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: -1;
+}
+
+.week-section {
+  margin-bottom: 8px;
+  background: transparent;
+}
+
+.week-section:last-child {
+  margin-bottom: 0;
 }
 
 .day-block {

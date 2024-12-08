@@ -1,4 +1,8 @@
 <?php
+// Activation du reporting d'erreurs pour le débogage
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 // Configuration de la base de données
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'vivreenl_prod_calendar');
@@ -19,7 +23,7 @@ function setCorsHeaders() {
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Max-Age: 86400');    // cache pour 1 jour
     header('Content-Type: application/json; charset=utf-8');
-    
+
     // Gérer les requêtes OPTIONS pour le preflight
     if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
         if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
